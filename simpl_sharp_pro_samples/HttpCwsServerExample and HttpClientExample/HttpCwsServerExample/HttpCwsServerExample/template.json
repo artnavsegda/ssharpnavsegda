@@ -1,0 +1,11 @@
+{
+    "collection" :
+    {
+        "version" : "1.0",
+        "href" : "{@resource}",
+        
+        "items" : 
+        {@list}
+		{@includetemplate}{@template}
+    }
+}

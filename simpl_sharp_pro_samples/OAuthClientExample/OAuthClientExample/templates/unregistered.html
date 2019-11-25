@@ -1,0 +1,36 @@
+<!-- Unregistered -->
+<p>In order to demonstrate the OAuth process, this OAuth Client needs to be hooked up with a Resource Owner, an Authorization Server, and a Protected Resource. Auth0 will provide all of these components.</p>
+<p>Go <a href="https://auth0.com/signup" target="_blank">here</a> to make an Auth0 account.
+Signing up will take you to a <a href="https://manage.auth0.com/dashboard/" target="_blank">dashboard</a> with an "Applications" button on the sidebar. 
+Click there and you will see that there is already a default application registered; click it and then go to the "Settings" tab for this app.
+</p>
+<p>You may want to rename the application "CWS OAuth Client Example" or similar, 
+but the important thing is to scroll down and paste the following URL into the "Allowed Callback URLs" field:</p>
+<p>{@callbackUrl}</p>
+<p>In addition,</p>
+<ul>
+  <li>Set the <strong>Application Type</strong> to <strong>Regular Web Application</strong></li>
+  <li>Set the <strong>Token Endpoint Authentication Method</strong> to <strong>Post</strong></li>
+</ul>
+<p>Scroll back up and you'll see three fields that Auth0 has generated for the app: 
+A Domain, Client ID, and a Client Secret. These three values need to be communicated to the client somehow so that the client knows where to find the Authorization Server and how to authenticate itself to it.
+Copy and paste each of these values into the corresponding fields below, and click Submit:</p>
+{@httpsAlert}
+<!-- form -->
+<form method="post" action="/cws/Register">
+  <div>
+    <label for="domain">Domain:</label>
+    <input type="text" id="domain" name="domain" />
+  </div>
+  <div>
+    <label for="client_id">Client ID:</label>
+    <input type="text" id="client_id" name="client_id" />
+  </div>
+  <div>
+    <label for="client_secret">Client Secret:</label>
+    <input type="password" id="client_secret" name="client_secret" />
+  </div>
+  <div>
+    <button type="submit">Submit</button>
+  </div>  
+</form>
