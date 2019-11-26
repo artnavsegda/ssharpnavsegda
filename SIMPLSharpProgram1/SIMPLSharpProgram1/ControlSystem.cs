@@ -40,7 +40,65 @@ namespace SIMPLSharpProgram1
 
                 //register device
                 myKeypad = new C2nCbdP(0x25, this);
-                myKeypad.ButtonStateChange += myKeypad_ButtonStateChange;
+                myKeypad.ButtonStateChange += (device, args) =>
+                {
+                    var btn = args.Button;
+                    var uo = btn.UserObject;
+
+                    CrestronConsole.PrintLine("Event sig: {0}, Type: {1}, State: {2}", btn.Number, btn.GetType(),
+                        btn.State);
+
+                    if (btn.State == eButtonState.Pressed)
+                    {
+                        switch (btn.Number)
+                        {
+                            case 1:
+                                if (myDimmer.DinLoads[2].LevelOut.UShortValue > 0)
+                                {
+                                    myDimmer.DinLoads[2].LevelIn.UShortValue = SimplSharpDeviceHelper.PercentToUshort(0f);
+                                    myKeypad.Feedbacks[1].State = false;
+                                }
+                                else
+                                {
+                                    myDimmer.DinLoads[2].LevelIn.UShortValue =
+                                        SimplSharpDeviceHelper.PercentToUshort(100f);
+                                    myKeypad.Feedbacks[1].State = true;
+                                }
+                                break;
+                            case 2:
+                                if (myDimmer.DinLoads[3].LevelOut.UShortValue > 0)
+                                {
+                                    myDimmer.DinLoads[3].LevelIn.UShortValue = SimplSharpDeviceHelper.PercentToUshort(0f);
+                                    myKeypad.Feedbacks[2].State = false;
+                                }
+                                else
+                                {
+                                    myDimmer.DinLoads[3].LevelIn.UShortValue =
+                                        SimplSharpDeviceHelper.PercentToUshort(100f);
+                                    myKeypad.Feedbacks[2].State = true;
+                                }
+                                break;
+                            case 5:
+                                myRelay.SwitchedLoads[1].FullOn();
+                                myRelay.SwitchedLoads[2].FullOff();
+                                break;
+                            case 6:
+                                myRelay.SwitchedLoads[2].FullOn();
+                                myRelay.SwitchedLoads[1].FullOff();
+                                break;
+                            case 7:
+                                myRelay.SwitchedLoads[3].FullOn();
+                                myRelay.SwitchedLoads[4].FullOff();
+                                break;
+                            case 8:
+                                myRelay.SwitchedLoads[4].FullOn();
+                                myRelay.SwitchedLoads[3].FullOff();
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                };
 
                 if (myKeypad.Register() != eDeviceRegistrationUnRegistrationResponse.Success)
                 {
@@ -54,7 +112,46 @@ namespace SIMPLSharpProgram1
                 }
 
                 myKeypad2 = new C2niCb(0x26, this);
-                myKeypad2.ButtonStateChange += myKeypad2_ButtonStateChange;
+                myKeypad2.ButtonStateChange += (device, args) =>
+                {
+                    var btn = args.Button;
+                    var uo = btn.UserObject;
+
+                    CrestronConsole.PrintLine("Event keypad 2 sig: {0}, Type: {1}, State: {2}", btn.Number,
+                        btn.GetType(), btn.State);
+
+                    if (btn.State == eButtonState.Pressed)
+                    {
+                        switch (btn.Number)
+                        {
+                            case 2:
+                                if (myDimmer.DinLoads[1].LevelOut.UShortValue > 0)
+                                {
+                                    myDimmer.DinLoads[1].LevelIn.UShortValue = SimplSharpDeviceHelper.PercentToUshort(0f);
+                                    myKeypad2.Feedbacks[1].State = false;
+                                    myKeypad2.Feedbacks[2].State = false;
+                                }
+                                else
+                                {
+                                    myDimmer.DinLoads[1].LevelIn.UShortValue =
+                                        SimplSharpDeviceHelper.PercentToUshort(100f);
+                                    myKeypad2.Feedbacks[1].State = true;
+                                    myKeypad2.Feedbacks[2].State = true;
+                                }
+                                break;
+                            case 9:
+                                myRelay.SwitchedLoads[5].FullOn();
+                                myRelay.SwitchedLoads[6].FullOff();
+                                break;
+                            case 11:
+                                myRelay.SwitchedLoads[6].FullOn();
+                                myRelay.SwitchedLoads[5].FullOff();
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                };
 
                 if (myKeypad2.Register() != eDeviceRegistrationUnRegistrationResponse.Success)
                 {
@@ -69,9 +166,38 @@ namespace SIMPLSharpProgram1
 
                 myDimmer = new Din1DimU4(0x0A, this);
                 // Now register the event handlers
-                myDimmer.OverrideEventHandler += OverrideEventHandler;
-                myDimmer.OnlineStatusChange += OnlineStatusChangeCallback;
-                myDimmer.BaseEvent += BaseEventCallback;
+                myDimmer.OverrideEventHandler += (device, overrideEvent) =>
+                {
+                    switch (overrideEvent)
+                    {
+                        case eOverrideEvents.External:
+                            CrestronConsole.PrintLine(" Device  reports external override event. State is {0} ",
+                                myDimmer.InExternalOverrideFeedback.BoolValue);
+                            break;
+                        case eOverrideEvents.Manual:
+                            CrestronConsole.PrintLine(" Device  reports manual override event. State is {0} ",
+                                myDimmer.InManualOverrideFeedback.BoolValue);
+                            break;
+                    }
+                };
+                myDimmer.OnlineStatusChange += (currentDevice, args) => CrestronConsole.PrintLine(" Din1DimU4 state {0} ", args.DeviceOnLine ? "Online" : "Offline");
+                myDimmer.BaseEvent += (device, args) =>
+                {
+                    //CrestronConsole.PrintLine("dimmer {0}", args.EventId);
+                    switch (args.EventId)
+                    {
+                        case DinLoadBaseClass.LevelOutFeedbackEventId:
+                            CrestronConsole.PrintLine(" Level out changed for output {0} ", args.Index);
+                            CrestronConsole.PrintLine(" Value of load is {0} ",
+                                myDimmer.DinLoads[(uint) args.Index].LevelOut.UShortValue);
+                            //myDimmer.DinLoads[(uint)args.Index].LevelIn.UShortValue = myDimmer.DinLoads[(uint)args.Index].LevelOut.UShortValue;
+                            break;
+                        case DinLoadBaseClass.NoAcPowerFeedbackEventId:
+                            CrestronConsole.PrintLine(" NoAcPowerFeedbackEventId fired. State is {0} ",
+                                myDimmer.NoAcPower.BoolValue);
+                            break;
+                    }
+                };
 
                 // Need to set parameters before we register the device
                 foreach (DinDimmableLoad dimmableLoad in myDimmer.DinLoads)
@@ -91,10 +217,62 @@ namespace SIMPLSharpProgram1
                 }
 
                 myRelay = new Din8Sw8i(0x92, this);
-                myRelay.OverrideEventHandler += relayOverrideEventHandler;
-                myRelay.OnlineStatusChange += relayOnlineStatusChangeCallback;
-                myRelay.BaseEvent += relayBaseEventCallback;
-                myRelay.LoadStateChange += LoadEventCallback;
+                myRelay.OverrideEventHandler += (device, overrideEvent) =>
+                {
+                    switch (overrideEvent)
+                    {
+                        case eOverrideEvents.External:
+                            CrestronConsole.PrintLine(" Device relay reports external override event. State is {0} ",
+                                myRelay.InExternalOverrideFeedback.BoolValue);
+                            break;
+                        case eOverrideEvents.Manual:
+                            CrestronConsole.PrintLine(" Device relay reports manual override event. State is {0} ",
+                                myRelay.InManualOverrideFeedback.BoolValue);
+                            break;
+                    }
+                };
+                myRelay.OnlineStatusChange += (currentDevice, args) => CrestronConsole.PrintLine(" Din8Sw8i  state {0} ", args.DeviceOnLine ? "Online" : "Offline");
+                myRelay.BaseEvent += (device, args) =>
+                {
+                    CrestronConsole.PrintLine("relay {0}", args.EventId);
+                    switch (args.EventId)
+                    {
+                            //case DinLoadBaseClass.LevelOutFeedbackEventId:
+                            //    CrestronConsole.PrintLine(" relay Level out changed for output {0} ", args.Index);
+                            //    //CrestronConsole.PrintLine(" Value of load is {0} ", myRelay.DinLoads[(uint)args.Index].LevelOut.UShortValue);
+                            //    break;
+                            //case DinLoadBaseClass.NoAcPowerFeedbackEventId:
+                            //    CrestronConsole.PrintLine(" NoAcPowerFeedbackEventId fired. State is {0} ", myRelay.NoAcPower.BoolValue);
+                            //    break;
+                    }
+                };
+                myRelay.LoadStateChange += (lightingObject, args) =>
+                {
+                    CrestronConsole.PrintLine("load relay {0}", args.EventId);
+
+                    // use this structure to react to the different events
+                    switch (args.EventId)
+                    {
+                        case LoadEventIds.IsOnEventId:
+                            CrestronConsole.PrintLine(" relay Level out changed for output {0} ", args.Load.Number);
+                            CrestronConsole.PrintLine(" Value of load is {0} ",
+                                myRelay.SwitchedLoads[args.Load.Number].IsOn);
+                            //xp.BooleanInput[1].BoolValue = !lampDimmer.DimmingLoads[1].IsOn;
+                            //xp.BooleanInput[2].BoolValue = lampDimmer.DimmingLoads[1].IsOn;
+                            break;
+
+                        case LoadEventIds.LevelChangeEventId:
+                            //xp.UShortInput[1].UShortValue = lampDimmer.DimmingLoads[1].LevelFeedback.UShortValue;
+                            break;
+
+                        case LoadEventIds.LevelInputChangedEventId:
+                            //xp.UShortInput[1].CreateRamp(lampDimmer.DimmingLoads[1].Level.RampingInformation);
+                            break;
+
+                        default:
+                            break;
+                    }
+                };
 
                 // Register the device now
                 if (myRelay.Register() != eDeviceRegistrationUnRegistrationResponse.Success)
@@ -109,9 +287,62 @@ namespace SIMPLSharpProgram1
                 }
 
                 //Subscribe to the controller events (System, Program, and Ethernet)
-                CrestronEnvironment.SystemEventHandler += ControlSystem_ControllerSystemEventHandler;
-                CrestronEnvironment.ProgramStatusEventHandler += ControlSystem_ControllerProgramEventHandler;
-                CrestronEnvironment.EthernetEventHandler += ControlSystem_ControllerEthernetEventHandler;
+                CrestronEnvironment.SystemEventHandler += systemEventType =>
+                {
+                    switch (systemEventType)
+                    {
+                        case (eSystemEventType.DiskInserted):
+                            //Removable media was detected on the system
+                            break;
+                        case (eSystemEventType.DiskRemoved):
+                            //Removable media was detached from the system
+                            break;
+                        case (eSystemEventType.Rebooting):
+                            //The system is rebooting. 
+                            //Very limited time to preform clean up and save any settings to disk.
+                            break;
+                    }
+                };
+                CrestronEnvironment.ProgramStatusEventHandler += programStatusEventType =>
+                {
+                    switch (programStatusEventType)
+                    {
+                        case (eProgramStatusEventType.Paused):
+                            //The program has been paused.  Pause all user threads/timers as needed.
+                            break;
+                        case (eProgramStatusEventType.Resumed):
+                            //The program has been resumed. Resume all the user threads/timers as needed.
+                            break;
+                        case (eProgramStatusEventType.Stopping):
+                            //The program has been stopped.
+                            //Close all threads. 
+                            //Shutdown all Client/Servers in the system.
+                            //General cleanup.
+                            //Unsubscribe to all System Monitor events
+                            break;
+                    }
+                };
+                CrestronEnvironment.EthernetEventHandler += ethernetEventArgs =>
+                {
+                    switch (ethernetEventArgs.EthernetEventType)
+                    {
+                        //Determine the event type Link Up or Link Down
+                        case (eEthernetEventType.LinkDown):
+                            //Next need to determine which adapter the event is for. 
+                            //LAN is the adapter is the port connected to external networks.
+                            if (ethernetEventArgs.EthernetAdapter == EthernetAdapterType.EthernetLANAdapter)
+                            {
+                                //
+                            }
+                            break;
+                        case (eEthernetEventType.LinkUp):
+                            if (ethernetEventArgs.EthernetAdapter == EthernetAdapterType.EthernetLANAdapter)
+                            {
+
+                            }
+                            break;
+                    }
+                };
 
                 //my console command
                 CrestronConsole.AddNewConsoleCommand(Hello, "hello", "hello command", ConsoleAccessLevelEnum.AccessOperator);
@@ -155,205 +386,6 @@ namespace SIMPLSharpProgram1
             CrestronConsole.ConsoleCommandResponse("Hello world: {0}", response.ToUpper());
         }
 
-
-        // Keypad event handler
-        void myKeypad_ButtonStateChange(GenericBase device, ButtonEventArgs args)
-        {
-            var btn = args.Button;
-            var uo = btn.UserObject;
-
-            CrestronConsole.PrintLine("Event sig: {0}, Type: {1}, State: {2}", btn.Number, btn.GetType(), btn.State);
-
-            if (btn.State == eButtonState.Pressed)
-            {
-                switch (btn.Number)
-                {
-                    case 1:
-                        if (myDimmer.DinLoads[2].LevelOut.UShortValue > 0)
-                        {
-                            myDimmer.DinLoads[2].LevelIn.UShortValue = SimplSharpDeviceHelper.PercentToUshort(0f);
-                            myKeypad.Feedbacks[1].State = false;
-                        }
-                        else
-                        {
-                            myDimmer.DinLoads[2].LevelIn.UShortValue = SimplSharpDeviceHelper.PercentToUshort(100f);
-                            myKeypad.Feedbacks[1].State = true;
-                        }
-                        break;
-                    case 2:
-                        if (myDimmer.DinLoads[3].LevelOut.UShortValue > 0)
-                        {
-                            myDimmer.DinLoads[3].LevelIn.UShortValue = SimplSharpDeviceHelper.PercentToUshort(0f);
-                            myKeypad.Feedbacks[2].State = false;
-                        }
-                        else
-                        {
-                            myDimmer.DinLoads[3].LevelIn.UShortValue = SimplSharpDeviceHelper.PercentToUshort(100f);
-                            myKeypad.Feedbacks[2].State = true;
-                        }
-                        break;
-                    case 5:
-                        myRelay.SwitchedLoads[1].FullOn();
-                        myRelay.SwitchedLoads[2].FullOff();
-                        break;
-                    case 6:
-                        myRelay.SwitchedLoads[2].FullOn();
-                        myRelay.SwitchedLoads[1].FullOff();
-                        break;
-                    case 7:
-                        myRelay.SwitchedLoads[3].FullOn();
-                        myRelay.SwitchedLoads[4].FullOff();
-                        break;
-                    case 8:
-                        myRelay.SwitchedLoads[4].FullOn();
-                        myRelay.SwitchedLoads[3].FullOff();
-                        break;
-                    default:
-                        break;
-                }
-            }
-
-        }
-
-        // Keypad event handler
-        void myKeypad2_ButtonStateChange(GenericBase device, ButtonEventArgs args)
-        {
-            var btn = args.Button;
-            var uo = btn.UserObject;
-
-            CrestronConsole.PrintLine("Event keypad 2 sig: {0}, Type: {1}, State: {2}", btn.Number, btn.GetType(), btn.State);
-
-            if (btn.State == eButtonState.Pressed)
-            {
-                switch (btn.Number)
-                {
-                    case 2:
-                        if (myDimmer.DinLoads[1].LevelOut.UShortValue > 0)
-                        {
-                            myDimmer.DinLoads[1].LevelIn.UShortValue = SimplSharpDeviceHelper.PercentToUshort(0f);
-                            myKeypad2.Feedbacks[1].State = false;
-                            myKeypad2.Feedbacks[2].State = false;
-                        }
-                        else
-                        {
-                            myDimmer.DinLoads[1].LevelIn.UShortValue = SimplSharpDeviceHelper.PercentToUshort(100f);
-                            myKeypad2.Feedbacks[1].State = true;
-                            myKeypad2.Feedbacks[2].State = true;
-                        }
-                        break;
-                    case 9:
-                        myRelay.SwitchedLoads[5].FullOn();
-                        myRelay.SwitchedLoads[6].FullOff();
-                        break;
-                    case 11:
-                        myRelay.SwitchedLoads[6].FullOn();
-                        myRelay.SwitchedLoads[5].FullOff();
-                        break;
-                    default:
-                        break;
-                }
-            }
-
-        }
-
-        // Online Offline Status Change Event Handler 
-        void OnlineStatusChangeCallback(GenericBase currentDevice, OnlineOfflineEventArgs args)
-        {
-            CrestronConsole.PrintLine(" Din1DimU4 state {0} ", args.DeviceOnLine ? "Online" : "Offline");
-        }
-
-        // Online Offline Status Change Event Handler 
-        void relayOnlineStatusChangeCallback(GenericBase currentDevice, OnlineOfflineEventArgs args)
-        {
-            CrestronConsole.PrintLine(" Din8Sw8i  state {0} ", args.DeviceOnLine ? "Online" : "Offline");
-        }
-
-        // Base Event handler for the Din1DimU4
-        void BaseEventCallback(GenericBase device, BaseEventArgs args)
-        {
-            CrestronConsole.PrintLine("dimmer {0}", args.EventId);
-            switch (args.EventId)
-            {
-                case DinLoadBaseClass.LevelOutFeedbackEventId:
-                    CrestronConsole.PrintLine(" Level out changed for output {0} ", args.Index);
-                    CrestronConsole.PrintLine(" Value of load is {0} ", myDimmer.DinLoads[(uint)args.Index].LevelOut.UShortValue);
-                    //myDimmer.DinLoads[(uint)args.Index].LevelIn.UShortValue = myDimmer.DinLoads[(uint)args.Index].LevelOut.UShortValue;
-                    break;
-                case DinLoadBaseClass.NoAcPowerFeedbackEventId:
-                    CrestronConsole.PrintLine(" NoAcPowerFeedbackEventId fired. State is {0} ", myDimmer.NoAcPower.BoolValue);
-                    break;
-            }
-        }
-
-        void relayBaseEventCallback(GenericBase device, BaseEventArgs args)
-        {
-            CrestronConsole.PrintLine("relay {0}", args.EventId);
-            switch (args.EventId)
-            {
-                //case DinLoadBaseClass.LevelOutFeedbackEventId:
-                //    CrestronConsole.PrintLine(" relay Level out changed for output {0} ", args.Index);
-                //    //CrestronConsole.PrintLine(" Value of load is {0} ", myRelay.DinLoads[(uint)args.Index].LevelOut.UShortValue);
-                //    break;
-                //case DinLoadBaseClass.NoAcPowerFeedbackEventId:
-                //    CrestronConsole.PrintLine(" NoAcPowerFeedbackEventId fired. State is {0} ", myRelay.NoAcPower.BoolValue);
-                //    break;
-            }
-        }
-
-        void LoadEventCallback(LightingBase lightingObject, LoadEventArgs args)
-        {
-            CrestronConsole.PrintLine("load relay {0}", args.EventId);
-
-            // use this structure to react to the different events
-            switch (args.EventId)
-            {
-                case LoadEventIds.IsOnEventId:
-                    CrestronConsole.PrintLine(" relay Level out changed for output {0} ", args.Load.Number);
-                    CrestronConsole.PrintLine(" Value of load is {0} ", myRelay.SwitchedLoads[args.Load.Number].IsOn);
-                    //xp.BooleanInput[1].BoolValue = !lampDimmer.DimmingLoads[1].IsOn;
-                    //xp.BooleanInput[2].BoolValue = lampDimmer.DimmingLoads[1].IsOn;
-                    break;
-
-                case LoadEventIds.LevelChangeEventId:
-                    //xp.UShortInput[1].UShortValue = lampDimmer.DimmingLoads[1].LevelFeedback.UShortValue;
-                    break;
-
-                case LoadEventIds.LevelInputChangedEventId:
-                    //xp.UShortInput[1].CreateRamp(lampDimmer.DimmingLoads[1].Level.RampingInformation);
-                    break;
-
-                default:
-                    break;
-            }
-        }
-
-        // Override handler for the Din1DimU4
-        void OverrideEventHandler(GenericBase device, eOverrideEvents overrideEvent)
-        {
-            switch (overrideEvent)
-            {
-                case eOverrideEvents.External:
-                    CrestronConsole.PrintLine(" Device  reports external override event. State is {0} ", myDimmer.InExternalOverrideFeedback.BoolValue);
-                    break;
-                case eOverrideEvents.Manual:
-                    CrestronConsole.PrintLine(" Device  reports manual override event. State is {0} ", myDimmer.InManualOverrideFeedback.BoolValue);
-                    break;
-            }
-        }
-
-        // Override handler for the Din1DimU4
-        void relayOverrideEventHandler(GenericBase device, eOverrideEvents overrideEvent)
-        {
-            switch (overrideEvent)
-            {
-                case eOverrideEvents.External:
-                    CrestronConsole.PrintLine(" Device relay reports external override event. State is {0} ", myRelay.InExternalOverrideFeedback.BoolValue);
-                    break;
-                case eOverrideEvents.Manual:
-                    CrestronConsole.PrintLine(" Device relay reports manual override event. State is {0} ", myRelay.InManualOverrideFeedback.BoolValue);
-                    break;
-            }
-        }
 
         /// <summary>
         /// Event Handler for Ethernet events: Link Up and Link Down. 
