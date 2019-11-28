@@ -17,6 +17,7 @@ namespace SIMPLSharpProgram1
         private C2niCb myKeypad2;
         private Din1DimU4 myDimmer;
         private Din8Sw8i myRelay;
+        private Thread myThread;
 
         /// <summary>
         /// ControlSystem Constructor. Starting point for the SIMPL#Pro program.
@@ -372,7 +373,9 @@ namespace SIMPLSharpProgram1
             CrestronConsole.PrintLine("Hello form SSharp program");
             try
             {
-                
+                myThread = new Thread(myThreadProc, null, Thread.eThreadStartOptions.Running);
+                //myThread.Start;
+
             }
             catch (Exception e)
             {
@@ -386,6 +389,16 @@ namespace SIMPLSharpProgram1
             CrestronConsole.ConsoleCommandResponse("Hello world: {0}", response.ToUpper());
         }
 
+        object myThreadProc(object obj)
+        {
+            CrestronConsole.PrintLine("Started first thread");
+            while (true)
+            {
+                Thread.Sleep(5000);
+                CrestronConsole.PrintLine("thread beat");
+            }
+            return 0;
+        }
 
         /// <summary>
         /// Event Handler for Ethernet events: Link Up and Link Down. 
