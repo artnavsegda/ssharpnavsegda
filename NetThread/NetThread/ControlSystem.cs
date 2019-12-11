@@ -71,12 +71,14 @@ namespace NetThread
 
         object myThreadProc(object obj)
         {
+            uint clientIndex;
             CrestronConsole.PrintLine("Started first thread");
-
             server = new TCPServer(8888, 100);
+            server.WaitForConnection(out clientIndex);
+            int numberOfBytesReceived = server.ReceiveData(clientIndex);
+            byte[] recvd_bytes = new byte[numberOfBytesReceived];
 
-            server.WaitForConnection();
-            server.ReceiveData();
+
 
 
             while (true)
