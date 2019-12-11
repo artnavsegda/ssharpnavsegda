@@ -48,28 +48,28 @@
   <ItemGroup>
     <Reference Include="Crestron.SimplSharpPro.DeviceSupport, Version=1.0.0.0, Culture=neutral, PublicKeyToken=1099c178b3b54c3b, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\ProgramData\Crestron\SDK\SSPDevices\Crestron.SimplSharpPro.DeviceSupport.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\..\ProgramData\Crestron\SDK\SSPDevices\Crestron.SimplSharpPro.DeviceSupport.dll</HintPath>
     </Reference>
     <Reference Include="Crestron.SimplSharpPro.Keypads, Version=1.0.0.0, Culture=neutral, PublicKeyToken=1099c178b3b54c3b, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\ProgramData\Crestron\SDK\SSPDevices\Crestron.SimplSharpPro.Keypads.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\..\ProgramData\Crestron\SDK\SSPDevices\Crestron.SimplSharpPro.Keypads.dll</HintPath>
     </Reference>
     <Reference Include="Crestron.SimplSharpPro.Lighting, Version=1.0.0.0, Culture=neutral, PublicKeyToken=1099c178b3b54c3b, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\ProgramData\Crestron\SDK\SSPDevices\Crestron.SimplSharpPro.Lighting.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\..\ProgramData\Crestron\SDK\SSPDevices\Crestron.SimplSharpPro.Lighting.dll</HintPath>
     </Reference>
     <Reference Include="mscorlib" />
     <Reference Include="SimplSharpCustomAttributesInterface, Version=1.0.0.0, Culture=neutral, PublicKeyToken=1099c178b3b54c3b, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\ProgramData\Crestron\SDK\SimplSharpCustomAttributesInterface.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\..\ProgramData\Crestron\SDK\SimplSharpCustomAttributesInterface.dll</HintPath>
     </Reference>
     <Reference Include="SimplSharpHelperInterface, Version=1.0.0.0, Culture=neutral, PublicKeyToken=1099c178b3b54c3b, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\ProgramData\Crestron\SDK\SimplSharpHelperInterface.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\..\ProgramData\Crestron\SDK\SimplSharpHelperInterface.dll</HintPath>
     </Reference>
     <Reference Include="SimplSharpPro, Version=1.5.3.17, Culture=neutral, PublicKeyToken=1099c178b3b54c3b, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\ProgramData\Crestron\SDK\SimplSharpPro.exe</HintPath>
+      <HintPath>..\..\..\..\..\..\..\ProgramData\Crestron\SDK\SimplSharpPro.exe</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />

@@ -1,6 +1,7 @@
 using System;
 using System.Text;
 using Crestron.SimplSharp;                          	// For Basic SIMPL# Classes
+using Crestron.SimplSharp.CrestronSockets;
 using Crestron.SimplSharpPro;                       	// For Basic SIMPL#Pro classes
 using Crestron.SimplSharpPro.CrestronThread;        	// For Threading
 using Crestron.SimplSharpPro.Diagnostics;		    	// For System Monitor Access
@@ -375,7 +376,15 @@ namespace SIMPLSharpProgram1
             {
                 myThread = new Thread(myThreadProc, null, Thread.eThreadStartOptions.Running);
                 //myThread.Start;
-
+                TCPServer myserver = new TCPServer("0.0.0.0", 7777, 4000, EthernetAdapterType.EthernetUnknownAdapter, 100);
+                SocketErrorCodes err = myserver.WaitForConnectionAsync((server, clientIndex) => {
+                    server.ReceiveDataAsync(clientIndex, (oddserver, oddclientIndex, numberOfBytesReceived) => {
+                        byte[] recvd_bytes = new byte[numberOfBytesReceived];
+                        Array.Copy(server.GetIncomingDataBufferForSpecificClient(clientIndex), recvd_bytes, numberOfBytesReceived);
+                        string recvd_msg = ASCIIEncoding.ASCII.GetString(recvd_bytes, 0, numberOfBytesReceived);
+                        CrestronConsole.PrintLine("Client " + clientIndex + " says: " + recvd_msg + "\r\n");
+                    });
+                });
             }
             catch (Exception e)
             {
