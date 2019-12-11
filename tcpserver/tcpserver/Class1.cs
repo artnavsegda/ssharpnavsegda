@@ -25,7 +25,7 @@ namespace tcpserver
         public void Init(string myString)
         {
             //init server
-            server = new TCPServer(9999, 100);
+            server = new TCPServer("0.0.0.0", 9999, 4000, EthernetAdapterType.EthernetUnknownAdapter, 100);
             server.SocketStatusChange += new TCPServerSocketStatusChangeEventHandler(ServerSocketStatusChanged);
             server.WaitForConnectionAsync(ServerConnectedCallback);
         }
