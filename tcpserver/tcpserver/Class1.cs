@@ -15,16 +15,19 @@ namespace tcpserver
         public MyTCPServer()
         {
             //constructor
+            CrestronConsole.PrintLine("MyTCPServer constructed");
         }
 
         public static void MyFunction(string myString)
         {
             //sample function
+            CrestronConsole.PrintLine("Sample function");
         }
 
         public void Init(string myString)
         {
             //init server
+            CrestronConsole.PrintLine("Starting server");
             server = new TCPServer("0.0.0.0", 9999, 4000, EthernetAdapterType.EthernetUnknownAdapter, 100);
             server.SocketStatusChange += new TCPServerSocketStatusChangeEventHandler(ServerSocketStatusChanged);
             server.WaitForConnectionAsync(ServerConnectedCallback);
@@ -36,11 +39,13 @@ namespace tcpserver
 
         public void ServerConnectedCallback(TCPServer server, uint clientIndex)
         {
+            CrestronConsole.PrintLine("Waiting for connection");
             server.ReceiveDataAsync(clientIndex, Server_RecieveDataCallBack);
         }
 
         public void Server_RecieveDataCallBack(TCPServer server, uint clientIndex, int numberOfBytesReceived)
         {
+            CrestronConsole.PrintLine("Client connected");
             byte[] recvd_bytes = new byte[numberOfBytesReceived];
             Array.Copy(server.GetIncomingDataBufferForSpecificClient(clientIndex), recvd_bytes, numberOfBytesReceived);
             string recvd_msg = ASCIIEncoding.ASCII.GetString(recvd_bytes, 0, numberOfBytesReceived);
