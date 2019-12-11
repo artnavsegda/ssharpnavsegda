@@ -1,5 +1,6 @@
 using System;
 using Crestron.SimplSharp;                          	// For Basic SIMPL# Classes
+using Crestron.SimplSharp.CrestronSockets;
 using Crestron.SimplSharpPro;                       	// For Basic SIMPL#Pro classes
 using Crestron.SimplSharpPro.CrestronThread;        	// For Threading
 using Crestron.SimplSharpPro.Diagnostics;		    	// For System Monitor Access
@@ -10,6 +11,7 @@ namespace NetThread
     public class ControlSystem : CrestronControlSystem
     {
         private Thread myThread;
+        private TCPServer server;
 
         /// <summary>
         /// ControlSystem Constructor. Starting point for the SIMPL#Pro program.
@@ -70,10 +72,17 @@ namespace NetThread
         object myThreadProc(object obj)
         {
             CrestronConsole.PrintLine("Started first thread");
+
+            server = new TCPServer(8888, 100);
+
+            server.WaitForConnection();
+            server.ReceiveData();
+
+
             while (true)
             {
                 Thread.Sleep(5000);
-                CrestronConsole.PrintLine("thread beat");
+                //CrestronConsole.PrintLine("thread beat");
             }
             return 0;
         }
