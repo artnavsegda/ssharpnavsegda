@@ -1,4 +1,5 @@
 using System;
+using System.Text;
 using Crestron.SimplSharp;                          	// For Basic SIMPL# Classes
 using Crestron.SimplSharp.CrestronSockets;
 using Crestron.SimplSharpPro;                       	// For Basic SIMPL#Pro classes
@@ -77,9 +78,9 @@ namespace NetThread
             server.WaitForConnection(out clientIndex);
             int numberOfBytesReceived = server.ReceiveData(clientIndex);
             byte[] recvd_bytes = new byte[numberOfBytesReceived];
-
-
-
+            Array.Copy(server.GetIncomingDataBufferForSpecificClient(clientIndex), recvd_bytes, numberOfBytesReceived);
+            string recvd_msg = ASCIIEncoding.ASCII.GetString(recvd_bytes, 0, numberOfBytesReceived);
+            CrestronConsole.PrintLine("Client " + clientIndex + " says: " + recvd_msg + "\r\n ");
 
             while (true)
             {
