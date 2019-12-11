@@ -73,10 +73,17 @@ namespace NetThread
         object myThreadProc(object obj)
         {
             uint clientIndex;
+            SocketErrorCodes err;
             CrestronConsole.PrintLine("Started first thread");
-            server = new TCPServer(8888, 100);
-            server.WaitForConnection(out clientIndex);
+            Thread.Sleep(5000);
+            CrestronConsole.PrintLine("Started server");
+            server = new TCPServer("0.0.0.0", 8888, 4000, EthernetAdapterType.EthernetUnknownAdapter, 100);
+            CrestronConsole.PrintLine("Waiting for connection");
+            err = server.WaitForConnection(out clientIndex);
+            CrestronConsole.PrintLine("WaitForConnectionAsync returned: " + err);
+            CrestronConsole.PrintLine("Client connected, recieving data");
             int numberOfBytesReceived = server.ReceiveData(clientIndex);
+            CrestronConsole.PrintLine("Recieved " + numberOfBytesReceived + " bytes");
             byte[] recvd_bytes = new byte[numberOfBytesReceived];
             Array.Copy(server.GetIncomingDataBufferForSpecificClient(clientIndex), recvd_bytes, numberOfBytesReceived);
             string recvd_msg = ASCIIEncoding.ASCII.GetString(recvd_bytes, 0, numberOfBytesReceived);
