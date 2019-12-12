@@ -1,5 +1,7 @@
 using System;
+using System.Text;
 using Crestron.SimplSharp;                          	// For Basic SIMPL# Classes
+using Crestron.SimplSharp.CrestronSockets;
 using Crestron.SimplSharpPro;                       	// For Basic SIMPL#Pro classes
 using Crestron.SimplSharpPro.CrestronThread;        	// For Threading
 using Crestron.SimplSharpPro.Diagnostics;		    	// For System Monitor Access
@@ -9,6 +11,8 @@ namespace websocket
 {
     public class ControlSystem : CrestronControlSystem
     {
+        private TCPServer server;
+
         /// <summary>
         /// ControlSystem Constructor. Starting point for the SIMPL#Pro program.
         /// Use the constructor to:
@@ -57,11 +61,96 @@ namespace websocket
         {
             try
             {
-
+                server = new TCPServer("0.0.0.0", 9876, 4000, EthernetAdapterType.EthernetUnknownAdapter, 1000);
+                SocketErrorCodes err = server.WaitForConnectionAsync(ServerConnectedCallback);
+                CrestronConsole.PrintLine("WaitForConnectionAsync returned: " + err);
             }
             catch (Exception e)
             {
                 ErrorLog.Error("Error in InitializeSystem: {0}", e.Message);
+            }
+        }
+
+        public void ServerConnectedCallback(TCPServer server, uint clientIndex)
+        {
+            if (clientIndex != 0)
+            {
+                CrestronConsole.PrintLine("Server listening on port " + server.PortNumber + " has connected with a client (client #" + clientIndex + ")");
+                server.ReceiveDataAsync(clientIndex, ServerDataReceivedCallback);
+                if (server.MaxNumberOfClientSupported == server.NumberOfClientsConnected)
+                {
+                    CrestronConsole.PrintLine("Client limit reached.");
+                    // This call to Stop() causes the server.State flag, SERVER_NOT_LISTENING, to be set
+                    server.Stop();
+                    CrestronConsole.PrintLine("After calling server.Stop(), the server state is: " + server.State);
+                }
+                // If the client limit is reached, WaitForConnectionAsync will return SOCKET_MAX_CONNECTIONS_REACHED
+                // and the ServerConnectedCallback will not be registered. Otherwise, the call to WaitForConnectionAsync
+                // causes the server to keep listening for more clients.
+                SocketErrorCodes err = server.WaitForConnectionAsync(ServerConnectedCallback);
+                CrestronConsole.PrintLine("WaitForConnectionAsync returned: " + err);
+            }
+            // A clientIndex of 0 could mean that the server is no longer listening, or that the TLS handshake failed when a client tried to connect.
+            // In the case of a TLS handshake failure, wait for another connection so that other clients can still connect
+            else
+            {
+                CrestronConsole.Print("Error in ServerConnectedCallback: ");
+                if ((server.State & ServerState.SERVER_NOT_LISTENING) > 0)
+                {
+                    CrestronConsole.PrintLine("Server is no longer listening.");
+                }
+                else
+                {
+                    CrestronConsole.PrintLine("Unable to make connection with client.");
+                    // This connection failed, but keep waiting for another
+                    server.WaitForConnectionAsync(ServerConnectedCallback);
+                }
+            }
+        }
+
+        public void ServerDataReceivedCallback(TCPServer server, uint clientIndex, int bytesReceived)
+        {
+            if (bytesReceived <= 0)
+            {
+                CrestronConsole.PrintLine("ServerDataReceivedCallback error: server's connection with client " + clientIndex + " has been closed.");
+                server.Disconnect(clientIndex);
+                // A connection has closed, so another client may connect if the server stopped listening 
+                // due to the maximum number of clients connecting
+                if ((server.State & ServerState.SERVER_NOT_LISTENING) > 0)
+                    server.WaitForConnectionAsync(ServerConnectedCallback);
+            }
+            else
+            {
+                CrestronConsole.PrintLine("\n------ incoming message -----------");
+                byte[] recvd_bytes = new byte[bytesReceived];
+
+                // Copy the received bytes into a local buffer so that they can be echoed back.
+                // Do not pass the reference to the incoming data buffer itself to the SendDataAsync method
+                Array.Copy(server.GetIncomingDataBufferForSpecificClient(clientIndex), recvd_bytes, bytesReceived);
+
+                // The server in this example expects ASCII text from the client, but any other encoding is possible
+                string recvd_msg = ASCIIEncoding.ASCII.GetString(recvd_bytes, 0, bytesReceived);
+                CrestronConsole.PrintLine("Client " + clientIndex + " says: " + recvd_msg + "\r\nEchoing back to client " + clientIndex + "...");
+
+                // echo the received message back to the client who sent it
+                server.SendDataAsync(clientIndex, recvd_bytes, recvd_bytes.Length, ServerDataSentCallback);
+
+                // Begin waiting for another message from that same client
+                server.ReceiveDataAsync(clientIndex, ServerDataReceivedCallback);
+
+                CrestronConsole.PrintLine("---------- end of message ----------");
+            }
+        }
+
+        public void ServerDataSentCallback(TCPServer server, uint clientIndex, int bytesSent)
+        {
+            if (bytesSent <= 0)
+            {
+                CrestronConsole.PrintLine("Error sending message. Connection has been closed");
+            }
+            else
+            {
+                CrestronConsole.PrintLine("Echoed message to client " + clientIndex + " (" + bytesSent + " byte(s))");
             }
         }
 
