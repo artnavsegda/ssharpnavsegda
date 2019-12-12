@@ -39,6 +39,7 @@ namespace SIMPLSharpProgram1
             try
             {
                 Thread.MaxNumberOfUserThreads = 20;
+                System.Security.Cryptography.SHA1.Create();
 
                 //register device
                 myKeypad = new C2nCbdP(0x25, this);

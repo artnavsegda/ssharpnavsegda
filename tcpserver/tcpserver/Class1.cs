@@ -5,58 +5,144 @@ using Crestron.SimplSharp.CrestronSockets;
 
 namespace tcpserver
 {
-    public class MyTCPServer
+    public class Server
     {
-        public TCPServer server;
-        /// <summary>
-        /// SIMPL+ can only execute the default constructor. If you have variables that require initialization, please
-        /// use an Initialize method
-        /// </summary>
-        public MyTCPServer()
+        private TCPServer _server;
+
+        private bool _waiting;
+        private uint _numberOfClientsConnected;
+
+//        public event EventHandler<ServerTcpReceiveEventArgs> _serverOnDataReceived;
+//        public event EventHandler<ServerTcpSocketStatusEventArgs> _serverSocketStatus;
+
+
+        // default constructor
+        public Server()
         {
-            //constructor
-            CrestronConsole.PrintLine("MyTCPServer constructed");
+            _numberOfClientsConnected = 0;
+
         }
 
-        public static void MyFunction(string myString)
+        public void Init(int port, int numberOfConnections)
         {
-            //sample function
-            CrestronConsole.PrintLine("Sample function");
+
+
+            try
+            {
+                //_server = new TCPServer(port, numberOfConnections);
+                CrestronConsole.PrintLine("Initializing Server on port {0} with {1} connections allowed.", port, numberOfConnections);
+                _server = new TCPServer("0.0.0.0", port, 4000, EthernetAdapterType.EthernetUnknownAdapter, numberOfConnections);
+
+                _server.SocketStatusChange += new TCPServerSocketStatusChangeEventHandler(_server_SocketStatusChange);
+            }
+            catch (Exception ex)
+            {
+                CrestronConsole.PrintLine("Error starting server in init: {0}", ex.Message);
+            }
+
+            SocketErrorCodes error = _server.WaitForConnectionAsync("0.0.0.0", Server_ClientConnectCallback);
+            CrestronConsole.PrintLine("Server> WaitingForConnection[{0}] [{1}]", error, _server.MaxNumberOfClientSupported);
+            _waiting = (error == SocketErrorCodes.SOCKET_OPERATION_PENDING);
         }
 
-        public void Init(string myString)
+        void _server_SocketStatusChange(TCPServer myTCPServer, uint clientIndex, SocketStatus serverSocketStatus)
         {
-            //init server
-            CrestronConsole.PrintLine("Starting server");
-            server = new TCPServer("0.0.0.0", 9999, 4000, EthernetAdapterType.EthernetUnknownAdapter, 100);
-            server.SocketStatusChange += new TCPServerSocketStatusChangeEventHandler(ServerSocketStatusChanged);
-            server.WaitForConnectionAsync(ServerConnectedCallback);
+            if (serverSocketStatus != SocketStatus.SOCKET_STATUS_CONNECTED)
+            {
+                _numberOfClientsConnected--;
+                CrestronConsole.PrintLine("Server> Disconnect {0}", clientIndex);
+
+                if (!_waiting)
+                    this.CheckForWaitingConnection();
+            }
+
+  //          _serverSocketStatus(null, new ServerTcpSocketStatusEventArgs(clientIndex, serverSocketStatus, _numberOfClientsConnected));
         }
 
-        public void ServerSocketStatusChanged(TCPServer server, uint clientIndex, SocketStatus status)
+        public void ServerSendData(uint clientIndex, string dataToSend)
         {
+            if (_server.ClientConnected(clientIndex) && dataToSend != null && dataToSend.Length > 0)
+            {
+                _server.SendDataAsync(clientIndex, Encoding.ASCII.GetBytes(dataToSend), dataToSend.Length, Server_SendDataCallback);
+            }
         }
 
-        public void ServerConnectedCallback(TCPServer server, uint clientIndex)
+        private void ServerClose(uint clientIndex)
         {
-            CrestronConsole.PrintLine("Waiting for connection");
-            server.ReceiveDataAsync(clientIndex, Server_RecieveDataCallBack);
+            _server.Disconnect(clientIndex);
         }
 
-        public void Server_RecieveDataCallBack(TCPServer server, uint clientIndex, int numberOfBytesReceived)
+        private void CheckForWaitingConnection()
         {
-            CrestronConsole.PrintLine("Client connected");
-            byte[] recvd_bytes = new byte[numberOfBytesReceived];
-            Array.Copy(server.GetIncomingDataBufferForSpecificClient(clientIndex), recvd_bytes, numberOfBytesReceived);
-            string recvd_msg = ASCIIEncoding.ASCII.GetString(recvd_bytes, 0, numberOfBytesReceived);
-            CrestronConsole.PrintLine("Client " + clientIndex + " says: " + recvd_msg + "\r\nEchoing back to client " + clientIndex + "...");
-            server.SendDataAsync(clientIndex, recvd_bytes, recvd_bytes.Length, ServerDataSentCallback);
-            server.ReceiveDataAsync(clientIndex, Server_RecieveDataCallBack);
-            CrestronConsole.PrintLine("---------- end of message ----------");
+            if (_numberOfClientsConnected < _server.MaxNumberOfClientSupported)
+            {
+                SocketErrorCodes error = _server.WaitForConnectionAsync("0.0.0.0", Server_ClientConnectCallback);
+                CrestronConsole.PrintLine("Server> WaitingForConnection[{0}] [{1}]", error, _server.MaxNumberOfClientSupported);
+                _waiting = (error == SocketErrorCodes.SOCKET_OPERATION_PENDING);
+            }
+            else
+            {
+                CrestronConsole.PrintLine("Server> No more connections available.");
+                _waiting = false;
+            }
         }
 
-        public void ServerDataSentCallback(TCPServer server, uint clientIndex, int bytesSent)
+        private void Server_ClientConnectCallback(TCPServer s, uint clientIndex)
         {
+            CrestronConsole.PrintLine("Server> Incoming Connection: [{0}|{1}/{2}] :: SocketStatus: {3}", clientIndex, _numberOfClientsConnected, s.MaxNumberOfClientSupported, s.GetServerSocketStatusForSpecificClient(clientIndex));
+
+            if (s.ClientConnected(clientIndex))
+            {
+                _numberOfClientsConnected++;
+
+                // check if needing to wait for a new connection
+                this.CheckForWaitingConnection();
+
+
+                s.ReceiveDataAsync(clientIndex, Server_RecieveDataCallBack);
+                /*
+                _numberOfClientsConnected--;
+                CrestronConsole.PrintLine("Server> Disconnect {0}", clientIndex);
+
+                if (!_waiting)
+                    this.CheckForWaitingConnection();
+                 */
+            }
+        }
+
+        private void Server_SendDataCallback(TCPServer s, uint clientIndex, int numberOfBytesSent)
+        {
+            CrestronConsole.PrintLine("Server> NumberOfBytesSent[{0}] to Client[{1}]", numberOfBytesSent, clientIndex);
+        }
+
+        private void Server_RecieveDataCallBack(TCPServer s, uint clientIndex, int numberOfBytesReceived)
+        {
+            CrestronConsole.PrintLine("Server> NumberOfBytesReceived[{0}] from Client[{1}]", numberOfBytesReceived, clientIndex);
+            if (numberOfBytesReceived > 0)
+            {
+#if Debug
+                CrestronConsole.PrintLine("ReceiveDataCallBack: client: [{0}] length: [{1}]",clientIndex,numberOfBytesReceived);
+#endif
+//                _serverOnDataReceived(null,
+//                    new ServerTcpReceiveEventArgs(clientIndex, s.GetIncomingDataBufferForSpecificClient(clientIndex).Take(numberOfBytesReceived).ToArray()));
+                while (s.ClientConnected(clientIndex))
+                {
+                    numberOfBytesReceived = s.ReceiveData(clientIndex);
+                    if (numberOfBytesReceived > 0)
+                    {
+#if Debug
+                CrestronConsole.PrintLine("ReceiveDataCallBack: client: [{0}] length: [{1}]",clientIndex,numberOfBytesReceived);
+#endif
+//                        _serverOnDataReceived(null,
+//                            new ServerTcpReceiveEventArgs(clientIndex, s.GetIncomingDataBufferForSpecificClient(clientIndex).Take(numberOfBytesReceived).ToArray()));
+                    }
+                    else
+                    {
+                        s.ReceiveDataAsync(clientIndex, Server_RecieveDataCallBack);
+                        break;
+                    }
+                }
+            }
         }
     }
 }
