@@ -10,6 +10,8 @@ namespace websocket2
 {
     public class ControlSystem : CrestronControlSystem
     {
+        WebsocketSrvr myserver;
+
         /// <summary>
         /// ControlSystem Constructor. Starting point for the SIMPL#Pro program.
         /// Use the constructor to:
@@ -58,7 +60,9 @@ namespace websocket2
         {
             try
             {
-
+                myserver = new WebsocketSrvr();
+                myserver.Initialize(8080);
+                myserver.StartServer();
             }
             catch (Exception e)
             {
