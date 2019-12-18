@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Text;
 using Crestron.SimplSharp;                          				// For Basic SIMPL# Classes
 using Crestron.SimplSharp.CrestronSockets;
@@ -12,24 +13,34 @@ namespace tcpserver
         private bool _waiting;
         private uint _numberOfClientsConnected;
 
-//        public event EventHandler<ServerTcpReceiveEventArgs> _serverOnDataReceived;
-//        public event EventHandler<ServerTcpSocketStatusEventArgs> _serverSocketStatus;
+        public class ServerTcpSocketStatusEventArgs : EventArgs{
+            public ServerTcpSocketStatusEventArgs(uint clientIndex, SocketStatus serverSocketStatus, uint numberOfClientsConnected)
+            {
+                //
+            }
+        }
 
+        public class ServerTcpReceiveEventArgs : EventArgs
+        {
+            public ServerTcpReceiveEventArgs(uint clientIndex, byte[] data)
+            {
+                //
+            }
+        }
+
+        public event EventHandler<ServerTcpReceiveEventArgs> _serverOnDataReceived;
+        public event EventHandler<ServerTcpSocketStatusEventArgs> _serverSocketStatus;
 
         // default constructor
         public Server()
         {
             _numberOfClientsConnected = 0;
-
         }
 
         public void Init(int port, int numberOfConnections)
         {
-
-
             try
             {
-                //_server = new TCPServer(port, numberOfConnections);
                 CrestronConsole.PrintLine("Initializing Server on port {0} with {1} connections allowed.", port, numberOfConnections);
                 _server = new TCPServer("0.0.0.0", port, 4000, EthernetAdapterType.EthernetUnknownAdapter, numberOfConnections);
 
@@ -56,7 +67,7 @@ namespace tcpserver
                     this.CheckForWaitingConnection();
             }
 
-  //          _serverSocketStatus(null, new ServerTcpSocketStatusEventArgs(clientIndex, serverSocketStatus, _numberOfClientsConnected));
+            _serverSocketStatus(null, new ServerTcpSocketStatusEventArgs(clientIndex, serverSocketStatus, _numberOfClientsConnected));
         }
 
         public void ServerSendData(uint clientIndex, string dataToSend)
@@ -123,8 +134,8 @@ namespace tcpserver
 #if Debug
                 CrestronConsole.PrintLine("ReceiveDataCallBack: client: [{0}] length: [{1}]",clientIndex,numberOfBytesReceived);
 #endif
-//                _serverOnDataReceived(null,
-//                    new ServerTcpReceiveEventArgs(clientIndex, s.GetIncomingDataBufferForSpecificClient(clientIndex).Take(numberOfBytesReceived).ToArray()));
+                _serverOnDataReceived(null,
+                    new ServerTcpReceiveEventArgs(clientIndex, s.GetIncomingDataBufferForSpecificClient(clientIndex).Take(numberOfBytesReceived).ToArray()));
                 while (s.ClientConnected(clientIndex))
                 {
                     numberOfBytesReceived = s.ReceiveData(clientIndex);
@@ -133,8 +144,8 @@ namespace tcpserver
 #if Debug
                 CrestronConsole.PrintLine("ReceiveDataCallBack: client: [{0}] length: [{1}]",clientIndex,numberOfBytesReceived);
 #endif
-//                        _serverOnDataReceived(null,
-//                            new ServerTcpReceiveEventArgs(clientIndex, s.GetIncomingDataBufferForSpecificClient(clientIndex).Take(numberOfBytesReceived).ToArray()));
+                        _serverOnDataReceived(null,
+                            new ServerTcpReceiveEventArgs(clientIndex, s.GetIncomingDataBufferForSpecificClient(clientIndex).Take(numberOfBytesReceived).ToArray()));
                     }
                     else
                     {
