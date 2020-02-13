@@ -18,7 +18,9 @@ namespace SIMPLSharpLibrary1
         }
         public int GetID()
         {
-            CrestronConsole.PrintLine("Sample simplsharp callback");
+            CrestronConsole.PrintLine("Sample simplsharp callback from s#");
+            CallbackEvent("Sample simplsharp callback from s+");
+
             return ID;
         }
     }
