@@ -175,5 +175,10 @@ namespace hsvtorgb
                 n = 1.0;
             return (ushort) (n*(double) ushort.MaxValue);
         }
+
+        public ColourSpaceHSV()
+        {
+            //default constructor
+        }
     }
 }
