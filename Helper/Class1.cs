@@ -6,13 +6,13 @@ namespace Helper
 {
     public class HelperClass
     {
-
-        /// <summary>
-        /// SIMPL+ can only execute the default constructor. If you have variables that require initialization, please
-        /// use an Initialize method
-        /// </summary>
         public HelperClass()
         {
+            // default constructor
+        }
+        public int ComputeRamp(int rampValue, int rampBound, int transitionTime)
+        {
+            return (rampValue / rampBound) * transitionTime;
         }
     }
 }
