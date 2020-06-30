@@ -12,7 +12,7 @@ namespace Helper
         }
         public int ComputeRamp(int rampValue, int rampBound, int transitionTime)
         {
-            return (rampValue / rampBound) * transitionTime;
+            return (int)(((float)rampValue / (float)rampBound) * (float)transitionTime);
         }
     }
 }
