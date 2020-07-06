@@ -164,7 +164,7 @@ namespace hsvtorgb
 
         private ushort ScaleHue(double h)
         {
-            double num = 0.28;
+            double num = 0.275;
             return (ushort) (3.6*(h*num));
         }
 
