@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Linq;
 using System.Text;
 using Crestron.SimplSharp;                          				// For Basic SIMPL# Classes
@@ -9,7 +10,7 @@ namespace tcpserver
     public class Server
     {
         private TCPServer _server;
-
+        private ArrayList _clientList;
         private bool _waiting;
         private uint _numberOfClientsConnected;
 
@@ -34,6 +35,7 @@ namespace tcpserver
         // default constructor
         public Server()
         {
+            _clientList = new ArrayList();
             _numberOfClientsConnected = 0;
         }
 
@@ -61,6 +63,7 @@ namespace tcpserver
             if (serverSocketStatus != SocketStatus.SOCKET_STATUS_CONNECTED)
             {
                 _numberOfClientsConnected--;
+                _clientList.Remove(clientIndex);
                 CrestronConsole.PrintLine("Server> Disconnect {0}", clientIndex);
 
                 if (!_waiting)
@@ -75,6 +78,17 @@ namespace tcpserver
             if (_server.ClientConnected(clientIndex) && dataToSend != null && dataToSend.Length > 0)
             {
                 _server.SendDataAsync(clientIndex, Encoding.ASCII.GetBytes(dataToSend), dataToSend.Length, Server_SendDataCallback);
+            }
+        }
+
+        public void ServerDataToEveryone(string dataToSend)
+        {
+            foreach (uint clientIndex in _clientList)
+            {
+                if (_server.ClientConnected(clientIndex) && dataToSend != null && dataToSend.Length > 0)
+                {
+                    _server.SendDataAsync(clientIndex, Encoding.ASCII.GetBytes(dataToSend), dataToSend.Length, Server_SendDataCallback);
+                }
             }
         }
 
@@ -105,6 +119,7 @@ namespace tcpserver
             if (s.ClientConnected(clientIndex))
             {
                 _numberOfClientsConnected++;
+                _clientList.Add(clientIndex);
 
                 // check if needing to wait for a new connection
                 this.CheckForWaitingConnection();
