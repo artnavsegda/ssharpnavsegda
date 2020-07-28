@@ -139,6 +139,11 @@ namespace tcpserver
         private void Server_SendDataCallback(TCPServer s, uint clientIndex, int numberOfBytesSent)
         {
             CrestronConsole.PrintLine("Server> NumberOfBytesSent[{0}] to Client[{1}]", numberOfBytesSent, clientIndex);
+            if (numberOfBytesSent == -1)
+            {
+                CrestronConsole.PrintLine("Client[{0}] socket closed", clientIndex);
+                _clientList.Remove(clientIndex);
+            }
         }
 
         private void Server_RecieveDataCallBack(TCPServer s, uint clientIndex, int numberOfBytesReceived)
