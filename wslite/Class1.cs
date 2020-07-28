@@ -9,11 +9,7 @@ using Crestron.SimplSharp.CrestronSockets;
 
 namespace WebsocketServer
 {
-    public delegate void AnalogSignalCallback(ushort signal, ushort value);
-    public delegate void ConnectionStateCallback(ushort state);
-    public delegate void DigitalSignalCallback(ushort signal, ushort state);
     public delegate void StringCallback(SimplSharpString msg);
-    public delegate void StringSignalCallback(ushort signal, SimplSharpString value);
 
     public interface IListener
     {
@@ -34,15 +30,7 @@ namespace WebsocketServer
 
         public StringCallback SendTrace { get; set; }
 
-        public DigitalSignalCallback OnDigitalSignalChange { get; set; }
-
-        public AnalogSignalCallback OnAnalogSignalChange { get; set; }
-
-        public StringSignalCallback OnStringSignalChange { get; set; }
-
-        public ConnectionStateCallback OnServerRunningChange { get; set; }
-
-        public ConnectionStateCallback OnClientConnectedChange { get; set; }
+        public StringCallback RecieveMessage { get; set; }
 
         public WebsocketSrvr()
         {
@@ -62,9 +50,6 @@ namespace WebsocketServer
             this.restartConnection = true;
             // ISSUE: method pointer
             this.server.WaitForConnectionAsync(tcpServerClientConnectCallback);
-            if (this.OnServerRunningChange == null)
-                return;
-            this.OnServerRunningChange((ushort)1);
         }
 
         public void StopServer()
@@ -72,11 +57,6 @@ namespace WebsocketServer
             this.restartConnection = false;
             this.server.DisconnectAll();
             this.myBuffer.Clear();
-            if (this.OnClientConnectedChange != null)
-                this.OnClientConnectedChange((ushort)0);
-            if (this.OnServerRunningChange == null)
-                return;
-            this.OnServerRunningChange((ushort)0);
         }
 
         public void SetDigitalSignal(ushort signal, ushort state)
@@ -108,8 +88,6 @@ namespace WebsocketServer
             this.server.Disconnect(clientIndex);
             this.myBuffer.Clear();
             this.isOnline = false;
-            if (this.OnClientConnectedChange != null)
-                this.OnClientConnectedChange((ushort)0);
             if (!this.restartConnection)
                 return;
             // ISSUE: method pointer
@@ -145,8 +123,6 @@ namespace WebsocketServer
                             myTCPServer.SendData(clientIndex, numArray, numArray.Length);
                             this.myBuffer.Clear();
                             this.isOnline = true;
-                            if (this.OnClientConnectedChange != null)
-                                this.OnClientConnectedChange((ushort)1);
                         }
                         else
                             this.resetConnection(clientIndex);
@@ -167,45 +143,8 @@ namespace WebsocketServer
                             {
                                 case 129:
                                     string msg = StringUtil.toString(numArray1);
-                                    if (msg.StartsWith("PUSH"))
-                                    {
-                                        ushort signal = ushort.Parse(StringUtil.getBoundString(msg, "[", "]"));
-                                        if (this.OnDigitalSignalChange != null)
-                                        {
-                                            this.OnDigitalSignalChange(signal, (ushort)1);
-                                            break;
-                                        }
-                                        break;
-                                    }
-                                    if (msg.StartsWith("RELEASE"))
-                                    {
-                                        ushort signal = ushort.Parse(StringUtil.getBoundString(msg, "[", "]"));
-                                        if (this.OnDigitalSignalChange != null)
-                                        {
-                                            this.OnDigitalSignalChange(signal, (ushort)0);
-                                            break;
-                                        }
-                                        break;
-                                    }
-                                    if (msg.StartsWith("LEVEL"))
-                                    {
-                                        ushort signal = ushort.Parse(StringUtil.getBoundString(msg, "[", ","));
-                                        ushort num3 = ushort.Parse(StringUtil.getBoundString(msg, ",", "]"));
-                                        if (this.OnAnalogSignalChange != null)
-                                        {
-                                            this.OnAnalogSignalChange(signal, num3);
-                                            break;
-                                        }
-                                        break;
-                                    }
-                                    if (msg.StartsWith("STRING"))
-                                    {
-                                        ushort signal = ushort.Parse(StringUtil.getBoundString(msg, "[", ","));
-                                        string boundString = StringUtil.getBoundString(msg, ",", "]");
-                                        if (this.OnStringSignalChange != null)
-                                            this.OnStringSignalChange(signal, boundString);
-                                        break;
-                                    }
+                                    if (this.RecieveMessage != null)
+                                        this.RecieveMessage(msg);
                                     break;
                                 case 136:
                                     this.resetConnection(clientIndex);
