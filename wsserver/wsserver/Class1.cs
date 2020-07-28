@@ -9,7 +9,20 @@ using Crestron.SimplSharp.CrestronSockets;
 
 namespace WebsocketServer
 {
-    public class WebsocketSrvr
+    public delegate void AnalogSignalCallback(ushort signal, ushort value);
+    public delegate void ConnectionStateCallback(ushort state);
+    public delegate void DigitalSignalCallback(ushort signal, ushort state);
+    public delegate void StringCallback(SimplSharpString msg);
+    public delegate void StringSignalCallback(ushort signal, SimplSharpString value);
+
+    public interface IListener
+    {
+        void sendTrace(string msg);
+
+        void sendTrace(byte[] msg);
+    }
+
+    public class WebsocketSrvr : IListener
     {
         private bool restartConnection = false;
         private bool isOnline = false;
@@ -18,6 +31,18 @@ namespace WebsocketServer
         private const int MAX_CONNECTION = 1;
         private TCPServer server;
         private ByteBuffer myBuffer;
+
+        public StringCallback SendTrace { get; set; }
+
+        public DigitalSignalCallback OnDigitalSignalChange { get; set; }
+
+        public AnalogSignalCallback OnAnalogSignalChange { get; set; }
+
+        public StringSignalCallback OnStringSignalChange { get; set; }
+
+        public ConnectionStateCallback OnServerRunningChange { get; set; }
+
+        public ConnectionStateCallback OnClientConnectedChange { get; set; }
 
         public WebsocketSrvr()
         {
@@ -29,16 +54,17 @@ namespace WebsocketServer
         {
             if (port <= 0)
                 return;
-            this.server.PortNumber = port;
+            //this.server.set_PortNumber(port);
         }
 
         public void StartServer()
         {
             this.restartConnection = true;
-            int num = (int)this.server.WaitForConnectionAsync(new TCPServerClientConnectCallback(this.tcpServerClientConnectCallback));
-//            if (this.OnServerRunningChange == null)
-//                return;
-//            this.OnServerRunningChange((ushort)1);
+            // ISSUE: method pointer
+            this.server.WaitForConnectionAsync(tcpServerClientConnectCallback);
+            if (this.OnServerRunningChange == null)
+                return;
+            this.OnServerRunningChange((ushort)1);
         }
 
         public void StopServer()
@@ -46,52 +72,54 @@ namespace WebsocketServer
             this.restartConnection = false;
             this.server.DisconnectAll();
             this.myBuffer.Clear();
-//            if (this.OnClientConnectedChange != null)
-//                this.OnClientConnectedChange((ushort)0);
-//            if (this.OnServerRunningChange == null)
-//                return;
-//            this.OnServerRunningChange((ushort)0);
+            if (this.OnClientConnectedChange != null)
+                this.OnClientConnectedChange((ushort)0);
+            if (this.OnServerRunningChange == null)
+                return;
+            this.OnServerRunningChange((ushort)0);
         }
 
         public void SetDigitalSignal(ushort signal, ushort state)
         {
-            byte[] pBufferToSend = state <= (ushort)0 ? WebsocketUtil.EncodeMsg((byte)129, StringUtil.toByteArray("OFF[" + (object)signal + "]")) : WebsocketUtil.EncodeMsg((byte)129, StringUtil.toByteArray("ON[" + (object)signal + "]"));
+            byte[] numArray = state <= (ushort)0 ? WebsocketUtil.EncodeMsg((byte)129, StringUtil.toByteArray("OFF[" + (object)signal + "]")) : WebsocketUtil.EncodeMsg((byte)129, StringUtil.toByteArray("ON[" + (object)signal + "]"));
             if (this.server.ServerSocketStatus != SocketStatus.SOCKET_STATUS_CONNECTED)
                 return;
-            int num = (int)this.server.SendData(pBufferToSend, pBufferToSend.Length);
+            this.server.SendData(numArray, numArray.Length);
         }
 
         public void SetAnalogSignal(ushort signal, ushort value)
         {
-            byte[] pBufferToSend = WebsocketUtil.EncodeMsg((byte)129, StringUtil.toByteArray("LEVEL[" + (object)signal + "," + (object)value + "]"));
+            byte[] numArray = WebsocketUtil.EncodeMsg((byte)129, StringUtil.toByteArray("LEVEL[" + (object)signal + "," + (object)value + "]"));
             if (this.server.ServerSocketStatus != SocketStatus.SOCKET_STATUS_CONNECTED)
                 return;
-            int num = (int)this.server.SendData(pBufferToSend, pBufferToSend.Length);
+            this.server.SendData(numArray, numArray.Length);
         }
 
         public void SetIndirectTextSignal(ushort signal, string text)
         {
-            byte[] pBufferToSend = WebsocketUtil.EncodeMsg((byte)129, StringUtil.toByteArray("STRING[" + (object)signal + "," + text + "]"));
+            byte[] numArray = WebsocketUtil.EncodeMsg((byte)129, StringUtil.toByteArray("STRING[" + (object)signal + "," + text + "]"));
             if (this.server.ServerSocketStatus != SocketStatus.SOCKET_STATUS_CONNECTED)
                 return;
-            int num = (int)this.server.SendData(pBufferToSend, pBufferToSend.Length);
+            this.server.SendData(numArray, numArray.Length);
         }
 
         private void resetConnection(uint clientIndex)
         {
-            int num1 = (int)this.server.Disconnect(clientIndex);
+            this.server.Disconnect(clientIndex);
             this.myBuffer.Clear();
             this.isOnline = false;
-//            if (this.OnClientConnectedChange != null)
-//                this.OnClientConnectedChange((ushort)0);
-//            if (!this.restartConnection)
-//                return;
-            int num2 = (int)this.server.WaitForConnectionAsync(new TCPServerClientConnectCallback(this.tcpServerClientConnectCallback));
+            if (this.OnClientConnectedChange != null)
+                this.OnClientConnectedChange((ushort)0);
+            if (!this.restartConnection)
+                return;
+            // ISSUE: method pointer
+            this.server.WaitForConnectionAsync(tcpServerClientConnectCallback);
         }
 
         private void tcpServerClientConnectCallback(TCPServer myTCPServer, uint clientIndex)
         {
-            int dataAsync = (int)this.server.ReceiveDataAsync(clientIndex, new TCPServerReceiveCallback(this.tcpServerReceiveCallback));
+            // ISSUE: method pointer
+            this.server.ReceiveDataAsync(tcpServerReceiveCallback);
         }
 
         private void tcpServerReceiveCallback(
@@ -113,12 +141,12 @@ namespace WebsocketServer
                         string boundString = StringUtil.getBoundString(this.myBuffer.ToString(), "Sec-WebSocket-Key: ", "\r\n");
                         if (boundString != null && boundString.Length > 0)
                         {
-                            byte[] pBufferToSend = WebsocketUtil.buildHandshakeMessage(boundString);
-                            int num = (int)myTCPServer.SendData(clientIndex, pBufferToSend, pBufferToSend.Length);
+                            byte[] numArray = WebsocketUtil.buildHandshakeMessage(boundString);
+                            myTCPServer.SendData(clientIndex, numArray, numArray.Length);
                             this.myBuffer.Clear();
                             this.isOnline = true;
-//                            if (this.OnClientConnectedChange != null)
-//                                this.OnClientConnectedChange((ushort)1);
+                            if (this.OnClientConnectedChange != null)
+                                this.OnClientConnectedChange((ushort)1);
                         }
                         else
                             this.resetConnection(clientIndex);
@@ -134,48 +162,48 @@ namespace WebsocketServer
                             byte[] array = this.myBuffer.ToArray(0, (int)num1);
                             this.myBuffer.Delete(0, (int)num1);
                             byte num2 = array[0];
-                            byte[] numArray = WebsocketUtil.DecodeMsg(array);
+                            byte[] numArray1 = WebsocketUtil.DecodeMsg(array);
                             switch (num2)
                             {
                                 case 129:
-                                    string msg = StringUtil.toString(numArray);
+                                    string msg = StringUtil.toString(numArray1);
                                     if (msg.StartsWith("PUSH"))
                                     {
                                         ushort signal = ushort.Parse(StringUtil.getBoundString(msg, "[", "]"));
-                                        //if (this.OnDigitalSignalChange != null)
-                                        //{
-                                        //    this.OnDigitalSignalChange(signal, (ushort)1);
-                                        //    break;
-                                        //}
+                                        if (this.OnDigitalSignalChange != null)
+                                        {
+                                            this.OnDigitalSignalChange(signal, (ushort)1);
+                                            break;
+                                        }
                                         break;
                                     }
                                     if (msg.StartsWith("RELEASE"))
                                     {
                                         ushort signal = ushort.Parse(StringUtil.getBoundString(msg, "[", "]"));
-                                        //if (this.OnDigitalSignalChange != null)
-                                        //{
-                                        //    this.OnDigitalSignalChange(signal, (ushort)0);
-                                        //    break;
-                                        //}
+                                        if (this.OnDigitalSignalChange != null)
+                                        {
+                                            this.OnDigitalSignalChange(signal, (ushort)0);
+                                            break;
+                                        }
                                         break;
                                     }
                                     if (msg.StartsWith("LEVEL"))
                                     {
                                         ushort signal = ushort.Parse(StringUtil.getBoundString(msg, "[", ","));
                                         ushort num3 = ushort.Parse(StringUtil.getBoundString(msg, ",", "]"));
-                                        //if (this.OnAnalogSignalChange != null)
-                                        //{
-                                        //    this.OnAnalogSignalChange(signal, num3);
-                                        //    break;
-                                        //}
+                                        if (this.OnAnalogSignalChange != null)
+                                        {
+                                            this.OnAnalogSignalChange(signal, num3);
+                                            break;
+                                        }
                                         break;
                                     }
                                     if (msg.StartsWith("STRING"))
                                     {
                                         ushort signal = ushort.Parse(StringUtil.getBoundString(msg, "[", ","));
                                         string boundString = StringUtil.getBoundString(msg, ",", "]");
-                                        //if (this.OnStringSignalChange != null)
-                                        //    this.OnStringSignalChange(signal, (SimplSharpString)boundString);
+                                        if (this.OnStringSignalChange != null)
+                                            this.OnStringSignalChange(signal, boundString);
                                         break;
                                     }
                                     break;
@@ -183,8 +211,8 @@ namespace WebsocketServer
                                     this.resetConnection(clientIndex);
                                     break;
                                 case 137:
-                                    byte[] pBufferToSend = WebsocketUtil.EncodeMsg((byte)138, numArray);
-                                    int num4 = (int)myTCPServer.SendData(clientIndex, pBufferToSend, pBufferToSend.Length);
+                                    byte[] numArray2 = WebsocketUtil.EncodeMsg((byte)138, numArray1);
+                                    myTCPServer.SendData(clientIndex, numArray2, numArray2.Length);
                                     break;
                             }
                         }
@@ -192,8 +220,26 @@ namespace WebsocketServer
                             break;
                     }
                 }
-                int dataAsync = (int)this.server.ReceiveDataAsync(clientIndex, new TCPServerReceiveCallback(this.tcpServerReceiveCallback));
+                // ISSUE: method pointer
+                this.server.ReceiveDataAsync(clientIndex, new TCPServerReceiveCallback(tcpServerReceiveCallback));
             }
+        }
+
+        private void sendTrace(SimplSharpString msg)
+        {
+            if (this.SendTrace == null)
+                return;
+            this.SendTrace(msg);
+        }
+
+        void IListener.sendTrace(string msg)
+        {
+            this.sendTrace(msg);
+        }
+
+        void IListener.sendTrace(byte[] msg)
+        {
+            this.sendTrace(StringUtil.toHexString(msg));
         }
     }
 }
