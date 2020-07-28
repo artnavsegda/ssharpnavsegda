@@ -81,7 +81,7 @@ namespace tcpserver
             }
         }
 
-        public void ServerDataToEveryone(string dataToSend)
+        public void ServerSendDataToEveryone(string dataToSend)
         {
             foreach (uint clientIndex in _clientList)
             {
