@@ -1,8 +1,8 @@
 ﻿using System.Reflection;
 
-[assembly: AssemblyTitle("wsserver")]
+[assembly: AssemblyTitle("wslite")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("wsserver")]
+[assembly: AssemblyProduct("wslite")]
 [assembly: AssemblyCopyright("Copyright ©  2019")]
 [assembly: AssemblyVersion("1.0.0.*")]
 
