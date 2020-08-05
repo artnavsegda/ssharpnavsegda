@@ -34,7 +34,7 @@ namespace WebsocketServer
 
         public WebsocketSrvr()
         {
-            this.server = new TCPServer("0.0.0.0", 8080, 1024);
+            this.server = new TCPServer("0.0.0.0", 8080, 1024, EthernetAdapterType.EthernetUnknownAdapter, 100);
             this.myBuffer = new ByteBuffer();
         }
 
