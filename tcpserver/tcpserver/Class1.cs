@@ -7,12 +7,15 @@ using Crestron.SimplSharp.CrestronSockets;
 
 namespace tcpserver
 {
+    public delegate void DelegateServerTcpReceive(SimplSharpString data);
     public class Server
     {
         private TCPServer _server;
         private ArrayList _clientList;
         private bool _waiting;
         private uint _numberOfClientsConnected;
+
+        public DelegateServerTcpReceive ServerTcpReceive { get; set; }
 
         // default constructor
         public Server()
@@ -136,7 +139,7 @@ namespace tcpserver
 #if Debug
                 CrestronConsole.PrintLine("ReceiveDataCallBack: client: [{0}] length: [{1}]",clientIndex,numberOfBytesReceived);
 #endif
-                //_serverOnDataReceived(null, new ServerTcpReceiveEventArgs(clientIndex, s.GetIncomingDataBufferForSpecificClient(clientIndex).Take(numberOfBytesReceived).ToString()));
+                ServerTcpReceive(s.GetIncomingDataBufferForSpecificClient(clientIndex).Take(numberOfBytesReceived).ToString());
                 while (s.ClientConnected(clientIndex))
                 {
                     numberOfBytesReceived = s.ReceiveData(clientIndex);
@@ -145,7 +148,7 @@ namespace tcpserver
 #if Debug
                 CrestronConsole.PrintLine("ReceiveDataCallBack: client: [{0}] length: [{1}]",clientIndex,numberOfBytesReceived);
 #endif
-                        //_serverOnDataReceived(null, new ServerTcpReceiveEventArgs(clientIndex, s.GetIncomingDataBufferForSpecificClient(clientIndex).Take(numberOfBytesReceived).ToString()));
+                        ServerTcpReceive(s.GetIncomingDataBufferForSpecificClient(clientIndex).Take(numberOfBytesReceived).ToString());
                     }
                     else
                     {
