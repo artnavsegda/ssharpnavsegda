@@ -14,24 +14,6 @@ namespace tcpserver
         private bool _waiting;
         private uint _numberOfClientsConnected;
 
-        public class ServerTcpSocketStatusEventArgs : EventArgs{
-            public ServerTcpSocketStatusEventArgs(uint clientIndex, SocketStatus serverSocketStatus, uint numberOfClientsConnected)
-            {
-                //
-            }
-        }
-
-        public class ServerTcpReceiveEventArgs : EventArgs
-        {
-            public ServerTcpReceiveEventArgs(uint clientIndex, byte[] data)
-            {
-                //
-            }
-        }
-
-        public event EventHandler<ServerTcpReceiveEventArgs> _serverOnDataReceived;
-        public event EventHandler<ServerTcpSocketStatusEventArgs> _serverSocketStatus;
-
         // default constructor
         public Server()
         {
@@ -70,7 +52,7 @@ namespace tcpserver
                     this.CheckForWaitingConnection();
             }
 
-            _serverSocketStatus(null, new ServerTcpSocketStatusEventArgs(clientIndex, serverSocketStatus, _numberOfClientsConnected));
+            //_serverSocketStatus(null, new ServerTcpSocketStatusEventArgs(clientIndex, serverSocketStatus, _numberOfClientsConnected));
         }
 
         public void ServerSendData(uint clientIndex, string dataToSend)
@@ -154,8 +136,7 @@ namespace tcpserver
 #if Debug
                 CrestronConsole.PrintLine("ReceiveDataCallBack: client: [{0}] length: [{1}]",clientIndex,numberOfBytesReceived);
 #endif
-                _serverOnDataReceived(null,
-                    new ServerTcpReceiveEventArgs(clientIndex, s.GetIncomingDataBufferForSpecificClient(clientIndex).Take(numberOfBytesReceived).ToArray()));
+                //_serverOnDataReceived(null, new ServerTcpReceiveEventArgs(clientIndex, s.GetIncomingDataBufferForSpecificClient(clientIndex).Take(numberOfBytesReceived).ToString()));
                 while (s.ClientConnected(clientIndex))
                 {
                     numberOfBytesReceived = s.ReceiveData(clientIndex);
@@ -164,8 +145,7 @@ namespace tcpserver
 #if Debug
                 CrestronConsole.PrintLine("ReceiveDataCallBack: client: [{0}] length: [{1}]",clientIndex,numberOfBytesReceived);
 #endif
-                        _serverOnDataReceived(null,
-                            new ServerTcpReceiveEventArgs(clientIndex, s.GetIncomingDataBufferForSpecificClient(clientIndex).Take(numberOfBytesReceived).ToArray()));
+                        //_serverOnDataReceived(null, new ServerTcpReceiveEventArgs(clientIndex, s.GetIncomingDataBufferForSpecificClient(clientIndex).Take(numberOfBytesReceived).ToString()));
                     }
                     else
                     {

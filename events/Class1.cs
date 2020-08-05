@@ -4,7 +4,6 @@ using Crestron.SimplSharp;                          				// For Basic SIMPL# Clas
 
 namespace events
 {
-
     /// <summary>
     /// TestBoundary has 2 members : myBoundary and currentValue.
     /// An event will be  triggered whenever currentValue goes over myBoundary.

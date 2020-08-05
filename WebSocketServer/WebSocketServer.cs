@@ -90,7 +90,7 @@ namespace WebSocketServerSpace
         public WebSocketServer()
         {
             //设置服务端端口号
-            ServerPort = 7001;
+            ServerPort = 8080;
             Initialize();
 
         }
