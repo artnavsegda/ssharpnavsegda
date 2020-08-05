@@ -59,30 +59,6 @@ namespace WebsocketServer
             this.myBuffer.Clear();
         }
 
-        public void SetDigitalSignal(ushort signal, ushort state)
-        {
-            byte[] numArray = state <= (ushort)0 ? WebsocketUtil.EncodeMsg((byte)129, StringUtil.toByteArray("OFF[" + (object)signal + "]")) : WebsocketUtil.EncodeMsg((byte)129, StringUtil.toByteArray("ON[" + (object)signal + "]"));
-            if (this.server.ServerSocketStatus != SocketStatus.SOCKET_STATUS_CONNECTED)
-                return;
-            this.server.SendData(numArray, numArray.Length);
-        }
-
-        public void SetAnalogSignal(ushort signal, ushort value)
-        {
-            byte[] numArray = WebsocketUtil.EncodeMsg((byte)129, StringUtil.toByteArray("LEVEL[" + (object)signal + "," + (object)value + "]"));
-            if (this.server.ServerSocketStatus != SocketStatus.SOCKET_STATUS_CONNECTED)
-                return;
-            this.server.SendData(numArray, numArray.Length);
-        }
-
-        public void SetIndirectTextSignal(ushort signal, string text)
-        {
-            byte[] numArray = WebsocketUtil.EncodeMsg((byte)129, StringUtil.toByteArray("STRING[" + (object)signal + "," + text + "]"));
-            if (this.server.ServerSocketStatus != SocketStatus.SOCKET_STATUS_CONNECTED)
-                return;
-            this.server.SendData(numArray, numArray.Length);
-        }
-
         private void resetConnection(uint clientIndex)
         {
             this.server.Disconnect(clientIndex);
