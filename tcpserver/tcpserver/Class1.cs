@@ -139,7 +139,9 @@ namespace tcpserver
 #if Debug
                 CrestronConsole.PrintLine("ReceiveDataCallBack: client: [{0}] length: [{1}]",clientIndex,numberOfBytesReceived);
 #endif
-                ServerTcpReceive(s.GetIncomingDataBufferForSpecificClient(clientIndex).Take(numberOfBytesReceived).ToString());
+                byte[] recvd_bytes = new byte[numberOfBytesReceived];
+                Array.Copy(s.GetIncomingDataBufferForSpecificClient(clientIndex), recvd_bytes, numberOfBytesReceived);
+                ServerTcpReceive(ASCIIEncoding.ASCII.GetString(recvd_bytes, 0, numberOfBytesReceived));
                 while (s.ClientConnected(clientIndex))
                 {
                     numberOfBytesReceived = s.ReceiveData(clientIndex);
@@ -148,7 +150,9 @@ namespace tcpserver
 #if Debug
                 CrestronConsole.PrintLine("ReceiveDataCallBack: client: [{0}] length: [{1}]",clientIndex,numberOfBytesReceived);
 #endif
-                        ServerTcpReceive(s.GetIncomingDataBufferForSpecificClient(clientIndex).Take(numberOfBytesReceived).ToString());
+                        recvd_bytes = new byte[numberOfBytesReceived];
+                        Array.Copy(s.GetIncomingDataBufferForSpecificClient(clientIndex), recvd_bytes, numberOfBytesReceived);
+                        ServerTcpReceive(ASCIIEncoding.ASCII.GetString(recvd_bytes, 0, numberOfBytesReceived));
                     }
                     else
                     {
