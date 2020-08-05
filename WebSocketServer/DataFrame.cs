@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using Crestron.SimplSharp;
 
-namespace WebSocketServer
+namespace WebSocketServerSpace
 {
     /// <summary>
     /// 数据帧

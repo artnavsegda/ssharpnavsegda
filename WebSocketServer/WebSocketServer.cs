@@ -6,7 +6,7 @@ using Crestron.SimplSharp;
 using Crestron.SimplSharp.CrestronSockets;
 using Crestron.SimplSharp.CrestronIO;
 
-namespace WebSocketServer
+namespace WebSocketServerSpace
 {
     #region 状态 委托
     public delegate void LogEventHandler(string Msg);
