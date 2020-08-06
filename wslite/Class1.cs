@@ -4,6 +4,8 @@
 // MVID: 9416C711-8AFD-444F-9A24-232C417E9E26
 // Assembly location: C:\Users\artna\Desktop\WebsocketServer.dll
 
+using System;
+using System.Collections;
 using Crestron.SimplSharp;
 using Crestron.SimplSharp.CrestronSockets;
 
@@ -11,81 +13,17 @@ namespace WebsocketServer
 {
     public delegate void StringCallback(SimplSharpString msg);
 
-    public interface IListener
+    public class Connection
     {
-        void sendTrace(string msg);
-
-        void sendTrace(byte[] msg);
-    }
-
-    public class WebsocketSrvr : IListener
-    {
-        private bool restartConnection = false;
-        private bool isOnline = false;
-        private const int SERVER_PORT = 8080;
-        private const int BUFFER_SIZE = 1024;
-        private const int MAX_CONNECTION = 1;
-        private TCPServer server;
+        private TCPServer _server;
+        public readonly uint ClientIndex;
+        private int _totalBytesReceived = 0;
         private ByteBuffer myBuffer;
+        private bool isOnline = false;
 
-        public StringCallback SendTrace { get; set; }
-
-        public StringCallback RecieveMessage { get; set; }
-
-        public WebsocketSrvr()
+        private void tcpServerReceiveCallback(TCPServer myTCPServer, uint clientIndex, int numberOfBytesReceived)
         {
-            this.server = new TCPServer("0.0.0.0", 8080, 1024, EthernetAdapterType.EthernetUnknownAdapter, 100);
-            this.myBuffer = new ByteBuffer();
-        }
-
-        public void Initialize(int port)
-        {
-            if (port <= 0)
-                return;
-            //this.server.set_PortNumber(port);
-        }
-
-        public void StartServer()
-        {
-            this.restartConnection = true;
-            // ISSUE: method pointer
-            this.server.WaitForConnectionAsync(tcpServerClientConnectCallback);
-        }
-
-        public void StopServer()
-        {
-            this.restartConnection = false;
-            this.server.DisconnectAll();
-            this.myBuffer.Clear();
-        }
-
-        private void resetConnection(uint clientIndex)
-        {
-            this.server.Disconnect(clientIndex);
-            this.myBuffer.Clear();
-            this.isOnline = false;
-            if (!this.restartConnection)
-                return;
-            // ISSUE: method pointer
-            this.server.WaitForConnectionAsync(tcpServerClientConnectCallback);
-        }
-
-        private void tcpServerClientConnectCallback(TCPServer myTCPServer, uint clientIndex)
-        {
-            // ISSUE: method pointer
-            this.server.ReceiveDataAsync(tcpServerReceiveCallback);
-        }
-
-        private void tcpServerReceiveCallback(
-          TCPServer myTCPServer,
-          uint clientIndex,
-          int numberOfBytesReceived)
-        {
-            if (numberOfBytesReceived == 0)
-            {
-                this.resetConnection(clientIndex);
-            }
-            else
+            if (numberOfBytesReceived > 0)
             {
                 this.myBuffer.Append(myTCPServer.GetIncomingDataBufferForSpecificClient(clientIndex), numberOfBytesReceived);
                 if (!this.isOnline)
@@ -119,8 +57,9 @@ namespace WebsocketServer
                             {
                                 case 129:
                                     string msg = StringUtil.toString(numArray1);
-                                    if (this.RecieveMessage != null)
-                                        this.RecieveMessage(msg);
+                                    //if (this.RecieveMessage != null)
+                                    //    this.RecieveMessage(msg);
+                                    CrestronConsole.PrintLine("Connection {0}, recieved [{1}]", ClientIndex, msg);
                                     break;
                                 case 136:
                                     this.resetConnection(clientIndex);
@@ -135,26 +74,90 @@ namespace WebsocketServer
                             break;
                     }
                 }
-                // ISSUE: method pointer
-                this.server.ReceiveDataAsync(clientIndex, new TCPServerReceiveCallback(tcpServerReceiveCallback));
+                this._server.ReceiveDataAsync(clientIndex, new TCPServerReceiveCallback(tcpServerReceiveCallback));
             }
         }
 
-        private void sendTrace(SimplSharpString msg)
+        private void resetConnection(uint clientIndex)
         {
-            if (this.SendTrace == null)
+            this._server.Disconnect(clientIndex);
+            this.myBuffer.Clear();
+            this.isOnline = false;
+        }
+
+        public Connection(TCPServer newServer, uint newClientIndex)
+        {
+            this.myBuffer = new ByteBuffer();
+            ClientIndex = newClientIndex;
+            _server = newServer;
+            newServer.ReceiveDataAsync(ClientIndex, tcpServerReceiveCallback);
+        }
+
+        public void Close()
+        {
+            CrestronConsole.PrintLine("Connection {0}, total bytes recieved [{1}]", ClientIndex, _totalBytesReceived);
+        }
+    }
+
+    public class WebsocketSrvr
+    {
+        private bool restartConnection = false;
+        
+        private TCPServer server;
+        private Hashtable _clientList;
+        private bool _waiting;
+
+        public StringCallback SendTrace { get; set; }
+
+        public StringCallback RecieveMessage { get; set; }
+
+        public WebsocketSrvr()
+        {
+            _clientList = new Hashtable();
+        }
+
+        public void Initialize(int port)
+        {
+            if (port <= 0)
                 return;
-            this.SendTrace(msg);
+            this.server = new TCPServer("0.0.0.0", port, 1024, EthernetAdapterType.EthernetUnknownAdapter, 100);
+            this.server.SocketStatusChange += new TCPServerSocketStatusChangeEventHandler(_server_SocketStatusChange);
+            SocketErrorCodes error = this.server.WaitForConnectionAsync(tcpServerClientConnectCallback);
+            _waiting = (error == SocketErrorCodes.SOCKET_OPERATION_PENDING);
         }
 
-        void IListener.sendTrace(string msg)
+        private void CheckForWaitingConnection()
         {
-            this.sendTrace(msg);
+            SocketErrorCodes error = this.server.WaitForConnectionAsync(tcpServerClientConnectCallback);
+            CrestronConsole.PrintLine("Server> WaitingForConnection[{0}] [{1}]", error, this.server.MaxNumberOfClientSupported);
+            _waiting = (error == SocketErrorCodes.SOCKET_OPERATION_PENDING);
         }
 
-        void IListener.sendTrace(byte[] msg)
+        private void tcpServerClientConnectCallback(TCPServer myTCPServer, uint clientIndex)
         {
-            this.sendTrace(StringUtil.toHexString(msg));
+            CrestronConsole.PrintLine("Server> Incoming Connection: [{0}] :: SocketStatus: {1}", clientIndex, myTCPServer.GetServerSocketStatusForSpecificClient(clientIndex));
+
+            if (myTCPServer.ClientConnected(clientIndex))
+            {
+                Connection newConnection = new Connection(myTCPServer, clientIndex);
+
+                _clientList.Add(clientIndex, newConnection);
+
+                // check if needing to wait for a new connection
+                this.CheckForWaitingConnection();
+            }
+        }
+
+        void _server_SocketStatusChange(TCPServer myTCPServer, uint clientIndex, SocketStatus serverSocketStatus)
+        {
+            if (serverSocketStatus != SocketStatus.SOCKET_STATUS_CONNECTED)
+            {
+                _clientList.Remove(clientIndex);
+                CrestronConsole.PrintLine("Server> Disconnect {0}", clientIndex);
+
+                if (!_waiting)
+                    this.CheckForWaitingConnection();
+            }
         }
     }
 }
