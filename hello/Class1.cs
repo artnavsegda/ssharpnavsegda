@@ -4,17 +4,17 @@ using Crestron.SimplSharp;                          				// For Basic SIMPL# Clas
 
 namespace hello
 {
-    public class Class1
+    public class HelloClass
     {
 
         /// <summary>
         /// SIMPL+ can only execute the default constructor. If you have variables that require initialization, please
         /// use an Initialize method
         /// </summary>
-        public Class1()
+        public HelloClass()
         {
         }
-        public static void hello()
+        public static void Hello()
         {
             CrestronConsole.PrintLine("Hello world !");
         }

@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Linq;
 using System.Text;
-using Crestron.SimplSharp;                          				// For Basic SIMPL# Classes
+using Crestron.SimplSharp;
 using Crestron.SimplSharp.CrestronSockets;
 
 namespace tcpserver
@@ -57,7 +57,7 @@ namespace tcpserver
 
         ~Connection()
         {
-            
+            CrestronConsole.PrintLine("Connection destructed, total bytes recieved [{0}]", _totalBytesReceived);
         }
     }
 
