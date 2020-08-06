@@ -17,13 +17,13 @@ namespace tcpserver
 
         private void Server_RecieveDataCallBack(TCPServer s, uint newClientIndex, int numberOfBytesReceived)
         {
-            _totalBytesReceived += numberOfBytesReceived;
-            CrestronConsole.PrintLine("Server> NumberOfBytesReceived[{0}] from Client[{1}]", numberOfBytesReceived, newClientIndex);
+//            CrestronConsole.PrintLine("Server> NumberOfBytesReceived[{0}] from Client[{1}]", numberOfBytesReceived, newClientIndex);
             if (numberOfBytesReceived > 0)
             {
-#if Debug
-                CrestronConsole.PrintLine("ReceiveDataCallBack: client: [{0}] length: [{1}]",clientIndex,numberOfBytesReceived);
-#endif
+                _totalBytesReceived += numberOfBytesReceived;
+//#if Debug
+                CrestronConsole.PrintLine("ReceiveDataCallBack: client: [{0}] length: [{1}]", newClientIndex, numberOfBytesReceived);
+//#endif
                 byte[] recvd_bytes = new byte[numberOfBytesReceived];
                 Array.Copy(s.GetIncomingDataBufferForSpecificClient(newClientIndex), recvd_bytes, numberOfBytesReceived);
                 //ServerTcpReceive(ASCIIEncoding.ASCII.GetString(recvd_bytes, 0, numberOfBytesReceived));
@@ -32,9 +32,10 @@ namespace tcpserver
                     numberOfBytesReceived = s.ReceiveData(newClientIndex);
                     if (numberOfBytesReceived > 0)
                     {
-#if Debug
-                CrestronConsole.PrintLine("ReceiveDataCallBack: client: [{0}] length: [{1}]",clientIndex,numberOfBytesReceived);
-#endif
+                        _totalBytesReceived += numberOfBytesReceived;
+//#if Debug
+                        CrestronConsole.PrintLine("ReceiveDataCallBack: client: [{0}] length: [{1}]", newClientIndex, numberOfBytesReceived);
+//#endif
                         recvd_bytes = new byte[numberOfBytesReceived];
                         Array.Copy(s.GetIncomingDataBufferForSpecificClient(newClientIndex), recvd_bytes, numberOfBytesReceived);
                         //ServerTcpReceive(ASCIIEncoding.ASCII.GetString(recvd_bytes, 0, numberOfBytesReceived));
@@ -53,6 +54,11 @@ namespace tcpserver
             ClientIndex = newClientIndex;
             //_server = newServer;
             newServer.ReceiveDataAsync(ClientIndex, Server_RecieveDataCallBack);
+        }
+
+        public void Close()
+        {
+            CrestronConsole.PrintLine("Connection destructed, total bytes recieved [{0}]", _totalBytesReceived);
         }
 
         ~Connection()
@@ -101,6 +107,7 @@ namespace tcpserver
             if (serverSocketStatus != SocketStatus.SOCKET_STATUS_CONNECTED)
             {
                 _numberOfClientsConnected--;
+                (_clientList[clientIndex] as Connection).Close();
                 _clientList.Remove(clientIndex);
                 CrestronConsole.PrintLine("Server> Disconnect {0}", clientIndex);
 
