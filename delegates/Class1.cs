@@ -6,7 +6,7 @@ namespace delegates
 {
     // Define the delegate:
     public delegate short DelegateComputeFn();
-    public delegate string DelegateFn(uint id);
+    public delegate void DelegateFn(uint id);
     // Create a property in a class:
     public class DelegateTest
     {
@@ -24,7 +24,7 @@ namespace delegates
                 ret = ComputeFn();
             return ret;
         }
-        private short Compute2()
+        public short Compute2()
         {
             short ret = 0;
             // Call the mapped function in SIMPL+
