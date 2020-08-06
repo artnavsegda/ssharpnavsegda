@@ -120,7 +120,7 @@ MyStruct1 struct;
 // SIGNED_LONG_INTEGER
 // STRING
 
-//DelegateTest myDelegateTest;
+DelegateTest myDelegateTest;
 
 /*******************************************************************************************
   Functions
@@ -163,12 +163,12 @@ String_Function MyStrFunction1()
   Event Handlers
   (Uncomment and declare additional event handlers as needed)
 *******************************************************************************************/
-/*
-PUSH input
+ 
+PUSH hello
 {
-    // TODO:  Add code here
+    myDelegateTest.Compute2();
 }
-*/
+ 
 
 /*
 RELEASE input
@@ -234,7 +234,6 @@ Function Main()
 {
     // TODO:  Add code here
     // Initialize declared global and local variables/arrays as needed.
-    DelegateTest myDelegateTest;
 
     WaitForInitializationComplete();
     // If you are reading any Input or Output variables, uncomment
@@ -244,7 +243,6 @@ Function Main()
     //   runs and propagates the values to them.
     
     RegisterDelegate (DelegateTest, StaticFn, StaticCallbackFn);
-    myDelegateTest.Compute2();
 }
  
 
