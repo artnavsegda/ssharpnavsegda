@@ -21,6 +21,8 @@ namespace WebsocketServer
         private ByteBuffer myBuffer;
         private bool isOnline = false;
 
+        static public StringCallback RecieveMessage { get; set; }
+
         private void tcpServerReceiveCallback(TCPServer myTCPServer, uint clientIndex, int numberOfBytesReceived)
         {
             if (numberOfBytesReceived > 0)
@@ -57,8 +59,8 @@ namespace WebsocketServer
                             {
                                 case 129:
                                     string msg = StringUtil.toString(numArray1);
-                                    //if (this.RecieveMessage != null)
-                                    //    this.RecieveMessage(msg);
+                                    if (RecieveMessage != null)
+                                        RecieveMessage(msg);
                                     CrestronConsole.PrintLine("Connection {0}, recieved [{1}]", ClientIndex, msg);
                                     break;
                                 case 136:
@@ -93,6 +95,11 @@ namespace WebsocketServer
             newServer.ReceiveDataAsync(ClientIndex, tcpServerReceiveCallback);
         }
 
+        public Connection()
+        {
+            
+        }
+
         public void Close()
         {
             CrestronConsole.PrintLine("Connection {0}, total bytes recieved [{1}]", ClientIndex, _totalBytesReceived);
@@ -106,10 +113,6 @@ namespace WebsocketServer
         private TCPServer server;
         private Hashtable _clientList;
         private bool _waiting;
-
-        public StringCallback SendTrace { get; set; }
-
-        public StringCallback RecieveMessage { get; set; }
 
         public WebsocketSrvr()
         {
