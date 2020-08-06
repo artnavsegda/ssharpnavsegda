@@ -11,35 +11,37 @@ namespace tcpserver
 
     public class Connection
     {
-        private TCPServer _server;
-        private uint _clientIndex;
+        //private TCPServer _server;
+        public readonly uint ClientIndex;
+        private int _totalBytesReceived = 0;
 
-        private void Server_RecieveDataCallBack(TCPServer s, uint clientIndex, int numberOfBytesReceived)
+        private void Server_RecieveDataCallBack(TCPServer s, uint newClientIndex, int numberOfBytesReceived)
         {
-            CrestronConsole.PrintLine("Server> NumberOfBytesReceived[{0}] from Client[{1}]", numberOfBytesReceived, clientIndex);
+            _totalBytesReceived += numberOfBytesReceived;
+            CrestronConsole.PrintLine("Server> NumberOfBytesReceived[{0}] from Client[{1}]", numberOfBytesReceived, newClientIndex);
             if (numberOfBytesReceived > 0)
             {
 #if Debug
                 CrestronConsole.PrintLine("ReceiveDataCallBack: client: [{0}] length: [{1}]",clientIndex,numberOfBytesReceived);
 #endif
                 byte[] recvd_bytes = new byte[numberOfBytesReceived];
-                Array.Copy(s.GetIncomingDataBufferForSpecificClient(clientIndex), recvd_bytes, numberOfBytesReceived);
+                Array.Copy(s.GetIncomingDataBufferForSpecificClient(newClientIndex), recvd_bytes, numberOfBytesReceived);
                 //ServerTcpReceive(ASCIIEncoding.ASCII.GetString(recvd_bytes, 0, numberOfBytesReceived));
-                while (s.ClientConnected(clientIndex))
+                while (s.ClientConnected(newClientIndex))
                 {
-                    numberOfBytesReceived = s.ReceiveData(clientIndex);
+                    numberOfBytesReceived = s.ReceiveData(newClientIndex);
                     if (numberOfBytesReceived > 0)
                     {
 #if Debug
                 CrestronConsole.PrintLine("ReceiveDataCallBack: client: [{0}] length: [{1}]",clientIndex,numberOfBytesReceived);
 #endif
                         recvd_bytes = new byte[numberOfBytesReceived];
-                        Array.Copy(s.GetIncomingDataBufferForSpecificClient(clientIndex), recvd_bytes, numberOfBytesReceived);
+                        Array.Copy(s.GetIncomingDataBufferForSpecificClient(newClientIndex), recvd_bytes, numberOfBytesReceived);
                         //ServerTcpReceive(ASCIIEncoding.ASCII.GetString(recvd_bytes, 0, numberOfBytesReceived));
                     }
                     else
                     {
-                        s.ReceiveDataAsync(clientIndex, Server_RecieveDataCallBack);
+                        s.ReceiveDataAsync(newClientIndex, Server_RecieveDataCallBack);
                         break;
                     }
                 }
@@ -48,16 +50,21 @@ namespace tcpserver
 
         public Connection(TCPServer newServer, uint newClientIndex)
         {
-            _clientIndex = newClientIndex;
-            _server = newServer;
-            _server.ReceiveDataAsync(_clientIndex, Server_RecieveDataCallBack);
+            ClientIndex = newClientIndex;
+            //_server = newServer;
+            newServer.ReceiveDataAsync(ClientIndex, Server_RecieveDataCallBack);
+        }
+
+        ~Connection()
+        {
+            
         }
     }
 
     public class Server
     {
         private TCPServer _server;
-        private ArrayList _clientList;
+        private Hashtable _clientList;
         private bool _waiting;
         private uint _numberOfClientsConnected;
 
@@ -66,7 +73,7 @@ namespace tcpserver
         // default constructor
         public Server()
         {
-            _clientList = new ArrayList();
+            _clientList = new Hashtable();
             _numberOfClientsConnected = 0;
         }
 
@@ -114,11 +121,11 @@ namespace tcpserver
 
         public void ServerSendDataToEveryone(string dataToSend)
         {
-            foreach (uint clientIndex in _clientList)
+            foreach (Connection client in _clientList)
             {
-                if (_server.ClientConnected(clientIndex) && dataToSend != null && dataToSend.Length > 0)
+                if (_server.ClientConnected(client.ClientIndex) && dataToSend != null && dataToSend.Length > 0)
                 {
-                    _server.SendDataAsync(clientIndex, Encoding.ASCII.GetBytes(dataToSend), dataToSend.Length, Server_SendDataCallback);
+                    _server.SendDataAsync(client.ClientIndex, Encoding.ASCII.GetBytes(dataToSend), dataToSend.Length, Server_SendDataCallback);
                 }
             }
         }
@@ -149,22 +156,13 @@ namespace tcpserver
 
             if (s.ClientConnected(clientIndex))
             {
+                Connection newConnection = new Connection(s, clientIndex);
+
                 _numberOfClientsConnected++;
-                _clientList.Add(clientIndex);
+                _clientList.Add(clientIndex, newConnection);
 
                 // check if needing to wait for a new connection
                 this.CheckForWaitingConnection();
-
-                Connection newConnection = new Connection(s, clientIndex);
-
-                //s.ReceiveDataAsync(clientIndex, Server_RecieveDataCallBack);
-                /*
-                _numberOfClientsConnected--;
-                CrestronConsole.PrintLine("Server> Disconnect {0}", clientIndex);
-
-                if (!_waiting)
-                    this.CheckForWaitingConnection();
-                 */
             }
         }
 
