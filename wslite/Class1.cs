@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections;
+using System.Text;
 using Crestron.SimplSharp;
 using Crestron.SimplSharp.CrestronSockets;
 
@@ -127,6 +128,28 @@ namespace WebsocketServer
             this.server.SocketStatusChange += new TCPServerSocketStatusChangeEventHandler(_server_SocketStatusChange);
             SocketErrorCodes error = this.server.WaitForConnectionAsync(tcpServerClientConnectCallback);
             _waiting = (error == SocketErrorCodes.SOCKET_OPERATION_PENDING);
+        }
+
+        public void ServerSendDataToEveryone(string dataToSend)
+        {
+            foreach (Connection client in _clientList)
+            {
+                if (server.ClientConnected(client.ClientIndex) && dataToSend != null && dataToSend.Length > 0)
+                {
+                    byte[] numArray = WebsocketUtil.EncodeMsg((byte)129, StringUtil.toByteArray(dataToSend));
+                    server.SendDataAsync(client.ClientIndex, numArray, numArray.Length, Server_SendDataCallback);
+                }
+            }
+        }
+
+        private void Server_SendDataCallback(TCPServer s, uint clientIndex, int numberOfBytesSent)
+        {
+            CrestronConsole.PrintLine("Server> NumberOfBytesSent[{0}] to Client[{1}]", numberOfBytesSent, clientIndex);
+            if (numberOfBytesSent == -1)
+            {
+                CrestronConsole.PrintLine("Client[{0}] socket closed", clientIndex);
+                _clientList.Remove(clientIndex);
+            }
         }
 
         private void CheckForWaitingConnection()
