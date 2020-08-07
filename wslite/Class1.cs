@@ -132,12 +132,12 @@ namespace WebsocketServer
 
         public void ServerSendDataToEveryone(string dataToSend)
         {
-            foreach (Connection client in _clientList)
+            foreach (DictionaryEntry client in _clientList)
             {
-                if (server.ClientConnected(client.ClientIndex) && dataToSend != null && dataToSend.Length > 0)
+                if (server.ClientConnected((client.Value as Connection).ClientIndex) && dataToSend != null && dataToSend.Length > 0)
                 {
                     byte[] numArray = WebsocketUtil.EncodeMsg((byte)129, StringUtil.toByteArray(dataToSend));
-                    server.SendDataAsync(client.ClientIndex, numArray, numArray.Length, Server_SendDataCallback);
+                    server.SendDataAsync((client.Value as Connection).ClientIndex, numArray, numArray.Length, Server_SendDataCallback);
                 }
             }
         }
