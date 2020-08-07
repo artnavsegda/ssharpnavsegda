@@ -128,11 +128,11 @@ namespace tcpserver
 
         public void ServerSendDataToEveryone(string dataToSend)
         {
-            foreach (Connection client in _clientList)
+            foreach (DictionaryEntry client in _clientList)
             {
-                if (_server.ClientConnected(client.ClientIndex) && dataToSend != null && dataToSend.Length > 0)
+                if (_server.ClientConnected((client.Value as Connection).ClientIndex) && dataToSend != null && dataToSend.Length > 0)
                 {
-                    _server.SendDataAsync(client.ClientIndex, Encoding.ASCII.GetBytes(dataToSend), dataToSend.Length, Server_SendDataCallback);
+                    _server.SendDataAsync((client.Value as Connection).ClientIndex, Encoding.ASCII.GetBytes(dataToSend), dataToSend.Length, Server_SendDataCallback);
                 }
             }
         }
