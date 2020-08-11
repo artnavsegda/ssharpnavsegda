@@ -6,6 +6,7 @@ using Crestron.SimplSharpPro.Diagnostics;		    	// For System Monitor Access
 using Crestron.SimplSharpPro.DeviceSupport;         	// For Generic Device Support
 using Crestron.SimplSharpPro.GeneralIO;
 using Crestron.SimplSharpPro.Keypads;
+using Crestron.SimplSharpPro.UI;
 
 namespace office
 {
@@ -14,6 +15,7 @@ namespace office
         private DinIo8 officeDinIo8;
         private C2nCbdP underShieldC2nCbdP, entranceC2nCbdP;
         private C2niCb meetingC2niCb;
+        private Xpanel officeIridium;
         /// <summary>
         /// ControlSystem Constructor. Starting point for the SIMPL#Pro program.
         /// Use the constructor to:
@@ -85,6 +87,19 @@ namespace office
                     CrestronConsole.PrintLine("meetingC2niCb successfully registered ");
                 }
 
+                officeIridium = new Xpanel(0x1, this);
+                officeIridium.SigChange += new SigEventHandler(officeIridium_SigChange);
+                if (officeIridium.Register() != eDeviceRegistrationUnRegistrationResponse.Success)
+                {
+                    CrestronConsole.PrintLine("Unable to register for officeIridium ");
+                    CrestronConsole.PrintLine("officeIridium failed registration. Cause: {0}", officeIridium.RegistrationFailureReason);
+                    ErrorLog.Error("officeIridium failed registration. Cause: {0}", officeIridium.RegistrationFailureReason);
+                }
+                else
+                {
+                    CrestronConsole.PrintLine("officeIridium successfully registered ");
+                }
+
                 //Subscribe to the controller events (System, Program, and Ethernet)
                 CrestronEnvironment.SystemEventHandler += new SystemEventHandler(ControlSystem_ControllerSystemEventHandler);
                 CrestronEnvironment.ProgramStatusEventHandler += new ProgramStatusEventHandler(ControlSystem_ControllerProgramEventHandler);
@@ -126,6 +141,11 @@ namespace office
             {
                 ErrorLog.Error("Error in InitializeSystem: {0}", e.Message);
             }
+        }
+
+        void officeIridium_SigChange(BasicTriList device, SigEventArgs args)
+        {
+            CrestronConsole.PrintLine("officeIridium Event sig: {0}, Type: {1}, State: {2}", args.Sig.Number, args.Sig.Type, args.Sig.BoolValue);
         }
 
         void underShieldC2nCbdP_ButtonStateChange(GenericBase device, ButtonEventArgs args)
