@@ -12,7 +12,8 @@ namespace office
     public class ControlSystem : CrestronControlSystem
     {
         private DinIo8 officeDinIo8;
-        private C2nCbdP underShieldC2nCbdP;
+        private C2nCbdP underShieldC2nCbdP, entranceC2nCbdP;
+        private C2niCb meetingC2niCb;
         /// <summary>
         /// ControlSystem Constructor. Starting point for the SIMPL#Pro program.
         /// Use the constructor to:
@@ -34,31 +35,54 @@ namespace office
                 Thread.MaxNumberOfUserThreads = 20;
 
                 officeDinIo8 = new DinIo8(0x9, this);
-
                 if (officeDinIo8.Register() != eDeviceRegistrationUnRegistrationResponse.Success)
                 {
-                    CrestronConsole.PrintLine(" Unable to register for officeDinIo8 ");
-                    CrestronConsole.PrintLine("officeDinIo8 {0} failed registration. Cause: {1}", 0x25, officeDinIo8.RegistrationFailureReason);
-                    ErrorLog.Error("officeDinIo8 {0} failed registration. Cause: {1}", 0x25, officeDinIo8.RegistrationFailureReason);
+                    CrestronConsole.PrintLine("Unable to register for officeDinIo8 ");
+                    CrestronConsole.PrintLine("officeDinIo8 failed registration. Cause: {0}", officeDinIo8.RegistrationFailureReason);
+                    ErrorLog.Error("officeDinIo8 failed registration. Cause: {0}", officeDinIo8.RegistrationFailureReason);
                 }
                 else
                 {
-                    CrestronConsole.PrintLine(" officeDinIo8 successfully registered ");
+                    CrestronConsole.PrintLine("officeDinIo8 successfully registered ");
                 }
 
                 underShieldC2nCbdP = new C2nCbdP(0x5, this);
-
                 underShieldC2nCbdP.ButtonStateChange += new ButtonEventHandler(underShieldC2nCbdP_ButtonStateChange);
-
                 if (underShieldC2nCbdP.Register() != eDeviceRegistrationUnRegistrationResponse.Success)
                 {
-                    CrestronConsole.PrintLine(" Unable to register for underShieldC2nCbdP ");
-                    CrestronConsole.PrintLine("underShieldC2nCbdP {0} failed registration. Cause: {1}", 0x25, underShieldC2nCbdP.RegistrationFailureReason);
-                    ErrorLog.Error("underShieldC2nCbdP {0} failed registration. Cause: {1}", 0x25, underShieldC2nCbdP.RegistrationFailureReason);
+                    CrestronConsole.PrintLine("Unable to register for underShieldC2nCbdP ");
+                    CrestronConsole.PrintLine("underShieldC2nCbdP failed registration. Cause: {0}", underShieldC2nCbdP.RegistrationFailureReason);
+                    ErrorLog.Error("underShieldC2nCbdP failed registration. Cause: {0}", underShieldC2nCbdP.RegistrationFailureReason);
                 }
                 else
                 {
                     CrestronConsole.PrintLine(" underShieldC2nCbdP successfully registered ");
+                }
+
+                entranceC2nCbdP = new C2nCbdP(0x4, this);
+                entranceC2nCbdP.ButtonStateChange += new ButtonEventHandler(entranceC2nCbdP_ButtonStateChange);
+                if (entranceC2nCbdP.Register() != eDeviceRegistrationUnRegistrationResponse.Success)
+                {
+                    CrestronConsole.PrintLine("Unable to register for entranceC2nCbdP ");
+                    CrestronConsole.PrintLine("entranceC2nCbdP failed registration. Cause: {0}", entranceC2nCbdP.RegistrationFailureReason);
+                    ErrorLog.Error("entranceC2nCbdP failed registration. Cause: {0}", entranceC2nCbdP.RegistrationFailureReason);
+                }
+                else
+                {
+                    CrestronConsole.PrintLine("entranceC2nCbdP successfully registered ");
+                }
+
+                meetingC2niCb = new C2niCb(0x6, this);
+                meetingC2niCb.ButtonStateChange += new ButtonEventHandler(meetingC2niCb_ButtonStateChange);
+                if (meetingC2niCb.Register() != eDeviceRegistrationUnRegistrationResponse.Success)
+                {
+                    CrestronConsole.PrintLine("Unable to register for meetingC2niCb ");
+                    CrestronConsole.PrintLine("meetingC2niCb failed registration. Cause: {0}", meetingC2niCb.RegistrationFailureReason);
+                    ErrorLog.Error("meetingC2niCb failed registration. Cause: {0}", meetingC2niCb.RegistrationFailureReason);
+                }
+                else
+                {
+                    CrestronConsole.PrintLine("meetingC2niCb successfully registered ");
                 }
 
                 //Subscribe to the controller events (System, Program, and Ethernet)
@@ -90,6 +114,13 @@ namespace office
             try
             {
                 officeDinIo8.VersiPorts[1].SetVersiportConfiguration(eVersiportConfiguration.DigitalOutput);
+                officeDinIo8.VersiPorts[2].SetVersiportConfiguration(eVersiportConfiguration.DigitalOutput);
+                officeDinIo8.VersiPorts[3].SetVersiportConfiguration(eVersiportConfiguration.DigitalOutput);
+                officeDinIo8.VersiPorts[4].SetVersiportConfiguration(eVersiportConfiguration.DigitalOutput);
+                officeDinIo8.VersiPorts[5].SetVersiportConfiguration(eVersiportConfiguration.DigitalOutput);
+                officeDinIo8.VersiPorts[6].SetVersiportConfiguration(eVersiportConfiguration.DigitalOutput);
+                officeDinIo8.VersiPorts[7].SetVersiportConfiguration(eVersiportConfiguration.DigitalOutput);
+                officeDinIo8.VersiPorts[8].SetVersiportConfiguration(eVersiportConfiguration.DigitalOutput);
             }
             catch (Exception e)
             {
@@ -99,17 +130,63 @@ namespace office
 
         void underShieldC2nCbdP_ButtonStateChange(GenericBase device, ButtonEventArgs args)
         {
-            CrestronConsole.PrintLine("Event sig: {0}, Type: {1}, State: {2}", args.Button.Number, args.Button.GetType(), args.Button.State);
+            CrestronConsole.PrintLine("underShieldC2nCbdP Event sig: {0}, Type: {1}, State: {2}", args.Button.Number, args.Button.GetType(), args.Button.State);
 
             if (args.Button.State == eButtonState.Pressed)
             {
                 switch (args.Button.Number)
                 {
                     case 1:
-                        officeDinIo8.VersiPorts[1].DigitalOut = true;
+                        officeDinIo8.VersiPorts[1].DigitalOut = !officeDinIo8.VersiPorts[1].DigitalOut;
+                        break;
+                    case 4:
+                        officeDinIo8.VersiPorts[3].DigitalOut = !officeDinIo8.VersiPorts[3].DigitalOut;
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+
+        void entranceC2nCbdP_ButtonStateChange(GenericBase device, ButtonEventArgs args)
+        {
+            CrestronConsole.PrintLine("entranceC2nCbdP Event sig: {0}, Type: {1}, State: {2}", args.Button.Number, args.Button.GetType(), args.Button.State);
+
+            if (args.Button.State == eButtonState.Pressed)
+            {
+                switch (args.Button.Number)
+                {
+                    case 1:
+                        officeDinIo8.VersiPorts[1].DigitalOut = !officeDinIo8.VersiPorts[1].DigitalOut;
                         break;
                     case 2:
-                        officeDinIo8.VersiPorts[1].DigitalOut = false;
+                        officeDinIo8.VersiPorts[2].DigitalOut = !officeDinIo8.VersiPorts[2].DigitalOut;
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+
+        void meetingC2niCb_ButtonStateChange(GenericBase device, ButtonEventArgs args)
+        {
+            CrestronConsole.PrintLine("meetingC2niCb Event sig: {0}, Type: {1}, State: {2}", args.Button.Number, args.Button.GetType(), args.Button.State);
+
+            if (args.Button.State == eButtonState.Pressed)
+            {
+                switch (args.Button.Number)
+                {
+                    case 1:
+                        officeDinIo8.VersiPorts[2].DigitalOut = !officeDinIo8.VersiPorts[2].DigitalOut;
+                        break;
+                    case 4:
+                        officeDinIo8.VersiPorts[5].DigitalOut = !officeDinIo8.VersiPorts[5].DigitalOut;
+                        break;
+                    case 8:
+                        officeDinIo8.VersiPorts[6].DigitalOut = !officeDinIo8.VersiPorts[6].DigitalOut;
+                        break;
+                    case 10:
+                        officeDinIo8.VersiPorts[4].DigitalOut = !officeDinIo8.VersiPorts[4].DigitalOut;
                         break;
                     default:
                         break;
