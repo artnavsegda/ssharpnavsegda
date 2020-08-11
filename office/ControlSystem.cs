@@ -5,12 +5,14 @@ using Crestron.SimplSharpPro.CrestronThread;        	// For Threading
 using Crestron.SimplSharpPro.Diagnostics;		    	// For System Monitor Access
 using Crestron.SimplSharpPro.DeviceSupport;         	// For Generic Device Support
 using Crestron.SimplSharpPro.GeneralIO;
+using Crestron.SimplSharpPro.Keypads;
 
 namespace office
 {
     public class ControlSystem : CrestronControlSystem
     {
         private DinIo8 officeDinIo8;
+        private C2nCbdP underShieldC2nCbdP;
         /// <summary>
         /// ControlSystem Constructor. Starting point for the SIMPL#Pro program.
         /// Use the constructor to:
@@ -30,6 +32,11 @@ namespace office
             try
             {
                 Thread.MaxNumberOfUserThreads = 20;
+
+                officeDinIo8 = new DinIo8(0x8, this);
+                underShieldC2nCbdP = new C2nCbdP(0x5, this);
+
+                underShieldC2nCbdP.ButtonStateChange += new ButtonEventHandler(underShieldC2nCbdP_ButtonStateChange);
 
                 //Subscribe to the controller events (System, Program, and Ethernet)
                 CrestronEnvironment.SystemEventHandler += new SystemEventHandler(ControlSystem_ControllerSystemEventHandler);
@@ -64,6 +71,21 @@ namespace office
             catch (Exception e)
             {
                 ErrorLog.Error("Error in InitializeSystem: {0}", e.Message);
+            }
+        }
+
+        void underShieldC2nCbdP_ButtonStateChange(GenericBase device, ButtonEventArgs args)
+        {
+            if (args.Button.State == eButtonState.Pressed)
+            {
+                switch (args.Button.Number)
+                {
+                    case 1:
+                        officeDinIo8.VersiPorts[0].DigitalOut = !officeDinIo8.VersiPorts[0].DigitalOut;
+                        break;
+                    default:
+                        break;
+                }
             }
         }
 
