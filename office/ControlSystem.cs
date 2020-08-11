@@ -138,9 +138,12 @@ namespace office
                 {
                     case 1:
                         officeDinIo8.VersiPorts[1].DigitalOut = !officeDinIo8.VersiPorts[1].DigitalOut;
+                        underShieldC2nCbdP.Feedbacks[1].State = officeDinIo8.VersiPorts[1].DigitalOut;
+                        entranceC2nCbdP.Feedbacks[1].State = officeDinIo8.VersiPorts[1].DigitalOut;
                         break;
                     case 4:
                         officeDinIo8.VersiPorts[3].DigitalOut = !officeDinIo8.VersiPorts[3].DigitalOut;
+                        underShieldC2nCbdP.Feedbacks[4].State = officeDinIo8.VersiPorts[3].DigitalOut;
                         break;
                     default:
                         break;
@@ -158,9 +161,13 @@ namespace office
                 {
                     case 1:
                         officeDinIo8.VersiPorts[1].DigitalOut = !officeDinIo8.VersiPorts[1].DigitalOut;
+                        underShieldC2nCbdP.Feedbacks[1].State = officeDinIo8.VersiPorts[1].DigitalOut;
+                        entranceC2nCbdP.Feedbacks[1].State = officeDinIo8.VersiPorts[1].DigitalOut;
                         break;
                     case 2:
                         officeDinIo8.VersiPorts[2].DigitalOut = !officeDinIo8.VersiPorts[2].DigitalOut;
+                        entranceC2nCbdP.Feedbacks[2].State = officeDinIo8.VersiPorts[2].DigitalOut;
+                        meetingC2niCb.Feedbacks[1].State = officeDinIo8.VersiPorts[2].DigitalOut;
                         break;
                     default:
                         break;
@@ -178,15 +185,20 @@ namespace office
                 {
                     case 1:
                         officeDinIo8.VersiPorts[2].DigitalOut = !officeDinIo8.VersiPorts[2].DigitalOut;
+                        entranceC2nCbdP.Feedbacks[2].State = officeDinIo8.VersiPorts[2].DigitalOut;
+                        meetingC2niCb.Feedbacks[1].State = officeDinIo8.VersiPorts[2].DigitalOut;
                         break;
                     case 4:
                         officeDinIo8.VersiPorts[5].DigitalOut = !officeDinIo8.VersiPorts[5].DigitalOut;
+                        meetingC2niCb.Feedbacks[4].State = officeDinIo8.VersiPorts[5].DigitalOut;
                         break;
                     case 8:
                         officeDinIo8.VersiPorts[6].DigitalOut = !officeDinIo8.VersiPorts[6].DigitalOut;
+                        meetingC2niCb.Feedbacks[8].State = officeDinIo8.VersiPorts[6].DigitalOut;
                         break;
                     case 10:
                         officeDinIo8.VersiPorts[4].DigitalOut = !officeDinIo8.VersiPorts[4].DigitalOut;
+                        meetingC2niCb.Feedbacks[10].State = officeDinIo8.VersiPorts[4].DigitalOut;
                         break;
                     default:
                         break;
