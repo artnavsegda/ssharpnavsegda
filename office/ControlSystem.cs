@@ -7,12 +7,14 @@ using Crestron.SimplSharpPro.DeviceSupport;         	// For Generic Device Suppo
 using Crestron.SimplSharpPro.GeneralIO;
 using Crestron.SimplSharpPro.Keypads;
 using Crestron.SimplSharpPro.UI;
+using Crestron.SimplSharpPro.Lighting.Din;
 
 namespace office
 {
     public class ControlSystem : CrestronControlSystem
     {
         private DinIo8 officeDinIo8;
+        private Din1DimU4 officeDin1DimU4;
         private C2nCbdP underShieldC2nCbdP, entranceC2nCbdP;
         private C2niCb meetingC2niCb;
         private Xpanel officeIridium;
@@ -46,6 +48,18 @@ namespace office
                 else
                 {
                     CrestronConsole.PrintLine("officeDinIo8 successfully registered ");
+                }
+
+                officeDin1DimU4 = new Din1DimU4(0x07, this);
+                if (officeDin1DimU4.Register() != eDeviceRegistrationUnRegistrationResponse.Success)
+                {
+                    CrestronConsole.PrintLine("Unable to register for officeDinIo8 ");
+                    CrestronConsole.PrintLine("officeDin1DimU4 failed registration. Cause: {0}", officeDin1DimU4.RegistrationFailureReason);
+                    ErrorLog.Error("officeDin1DimU4 failed registration. Cause: {0}", officeDin1DimU4.RegistrationFailureReason);
+                }
+                else
+                {
+                    CrestronConsole.PrintLine("officeDin1DimU4 successfully registered ");
                 }
 
                 underShieldC2nCbdP = new C2nCbdP(0x5, this);
@@ -136,6 +150,11 @@ namespace office
                 officeDinIo8.VersiPorts[6].SetVersiportConfiguration(eVersiportConfiguration.DigitalOutput);
                 officeDinIo8.VersiPorts[7].SetVersiportConfiguration(eVersiportConfiguration.DigitalOutput);
                 officeDinIo8.VersiPorts[8].SetVersiportConfiguration(eVersiportConfiguration.DigitalOutput);
+
+                officeDin1DimU4.DinLoads[1].LevelIn.TieInputToOutput(officeDin1DimU4.DinLoads[1].LevelOut);
+                officeDin1DimU4.DinLoads[2].LevelIn.TieInputToOutput(officeDin1DimU4.DinLoads[2].LevelOut);
+                officeDin1DimU4.DinLoads[3].LevelIn.TieInputToOutput(officeDin1DimU4.DinLoads[3].LevelOut);
+                officeDin1DimU4.DinLoads[4].LevelIn.TieInputToOutput(officeDin1DimU4.DinLoads[4].LevelOut);
             }
             catch (Exception e)
             {
@@ -161,11 +180,38 @@ namespace office
                         underShieldC2nCbdP.Feedbacks[1].State = officeDinIo8.VersiPorts[1].DigitalOut;
                         entranceC2nCbdP.Feedbacks[1].State = officeDinIo8.VersiPorts[1].DigitalOut;
                         break;
+                    case 2:
+                        //if (officeDin1DimU4.DinLoads[4].LevelOut.UShortValue > 0)
+                        //    officeDin1DimU4.DinLoads[4].LevelIn.CreateRamp(60000,1000);
+                        //else
+                        //    officeDin1DimU4.DinLoads[4].LevelIn.CreateRamp(0, 1000);
+                        break;
                     case 4:
                         officeDinIo8.VersiPorts[3].DigitalOut = !officeDinIo8.VersiPorts[3].DigitalOut;
                         underShieldC2nCbdP.Feedbacks[4].State = officeDinIo8.VersiPorts[3].DigitalOut;
                         break;
                     default:
+                        break;
+                }
+            }
+            else if (args.Button.State == eButtonState.Released)
+            {
+                switch (args.Button.Number)
+                {
+                    case 2:
+                        //officeDin1DimU4.DinLoads[4].LevelIn.StopRamp();
+                        break;
+                }
+            }
+            else if (args.Button.State == eButtonState.Tapped)
+            {
+                switch (args.Button.Number)
+                {
+                    case 2:
+                        if (officeDin1DimU4.DinLoads[4].LevelOut.UShortValue == 0)
+                            officeDin1DimU4.DinLoads[4].LevelIn.CreateRamp(60000,100);
+                        else
+                            officeDin1DimU4.DinLoads[4].LevelIn.CreateRamp(0, 100);
                         break;
                 }
             }
@@ -240,6 +286,30 @@ namespace office
                         meetingC2niCb.Feedbacks[10].State = officeDinIo8.VersiPorts[4].DigitalOut;
                         break;
                     default:
+                        break;
+                }
+            }
+            else if (args.Button.State == eButtonState.Tapped)
+            {
+                switch (args.Button.Number)
+                {
+                    case 2:
+                        if (officeDin1DimU4.DinLoads[1].LevelOut.UShortValue == 0)
+                            officeDin1DimU4.DinLoads[1].LevelIn.CreateRamp(60000, 100);
+                        else
+                            officeDin1DimU4.DinLoads[1].LevelIn.CreateRamp(0, 100);
+                        break;
+                    case 3:
+                        if (officeDin1DimU4.DinLoads[2].LevelOut.UShortValue == 0)
+                            officeDin1DimU4.DinLoads[2].LevelIn.CreateRamp(60000, 100);
+                        else
+                            officeDin1DimU4.DinLoads[2].LevelIn.CreateRamp(0, 100);
+                        break;
+                    case 9:
+                        if (officeDin1DimU4.DinLoads[3].LevelOut.UShortValue == 0)
+                            officeDin1DimU4.DinLoads[3].LevelIn.CreateRamp(60000, 100);
+                        else
+                            officeDin1DimU4.DinLoads[3].LevelIn.CreateRamp(0, 100);
                         break;
                 }
             }
