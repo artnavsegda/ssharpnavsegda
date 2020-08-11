@@ -9,6 +9,8 @@ using Crestron.SimplSharpPro.DeviceSupport;         	// For Generic Device Suppo
 using Crestron.SimplSharpPro.Keypads;
 using Crestron.SimplSharpPro.Lighting;
 using Crestron.SimplSharpPro.Lighting.Din;
+using Crestron.SimplSharpPro.GeneralIO;
+using Crestron.SimplSharpPro.UI;
 
 namespace SIMPLSharpProgram1
 {
@@ -18,6 +20,11 @@ namespace SIMPLSharpProgram1
         private C2niCb myKeypad2;
         private Din1DimU4 myDimmer;
         private Din8Sw8i myRelay;
+        private DinAo8 myRgbDimmer;
+        private DinIo8 mySecondRelay;
+        private C2nLcdb3 myPanel;
+        private Xpanel myIridium;
+
         private Thread myThread;
 
         /// <summary>
