@@ -7,12 +7,14 @@ using Crestron.SimplSharpPro.DeviceSupport;         	// For Generic Device Suppo
 using Crestron.SimplSharpPro.GeneralIO;
 using Crestron.SimplSharpPro.Keypads;
 using Crestron.SimplSharpPro.UI;
+using Crestron.SimplSharpPro.Lighting;
 using Crestron.SimplSharpPro.Lighting.Din;
 
 namespace office
 {
     public class ControlSystem : CrestronControlSystem
     {
+        private Din8Sw8i officeDin8Sw8i;
         private DinIo8 officeDinIo8;
         private Din1DimU4 officeDin1DimU4;
         private C2nCbdP underShieldC2nCbdP, entranceC2nCbdP;
@@ -37,6 +39,18 @@ namespace office
             try
             {
                 Thread.MaxNumberOfUserThreads = 20;
+
+                officeDin8Sw8i = new Din8Sw8i(0x3, this);
+                if (officeDin8Sw8i.Register() != eDeviceRegistrationUnRegistrationResponse.Success)
+                {
+                    CrestronConsole.PrintLine("Unable to register for officeDin8Sw8i ");
+                    CrestronConsole.PrintLine("officeDin8Sw8i failed registration. Cause: {0}", officeDin8Sw8i.RegistrationFailureReason);
+                    ErrorLog.Error("officeDin8Sw8i failed registration. Cause: {0}", officeDin8Sw8i.RegistrationFailureReason);
+                }
+                else
+                {
+                    CrestronConsole.PrintLine("officeDin8Sw8i successfully registered ");
+                }
 
                 officeDinIo8 = new DinIo8(0x9, this);
                 if (officeDinIo8.Register() != eDeviceRegistrationUnRegistrationResponse.Success)
@@ -196,26 +210,27 @@ namespace office
                         entranceC2nCbdP.Feedbacks[1].State = officeDinIo8.VersiPorts[1].DigitalOut;
                         officeIridium.BooleanInput[1].BoolValue = officeDinIo8.VersiPorts[1].DigitalOut;
                         break;
-                    case 2:
-                        //if (officeDin1DimU4.DinLoads[4].LevelOut.UShortValue > 0)
-                        //    officeDin1DimU4.DinLoads[4].LevelIn.CreateRamp(60000,1000);
-                        //else
-                        //    officeDin1DimU4.DinLoads[4].LevelIn.CreateRamp(0, 1000);
-                        break;
                     case 4:
                         officeDinIo8.VersiPorts[3].DigitalOut = !officeDinIo8.VersiPorts[3].DigitalOut;
                         underShieldC2nCbdP.Feedbacks[4].State = officeDinIo8.VersiPorts[3].DigitalOut;
                         break;
-                    default:
+                    case 5:
+                        officeDin8Sw8i.SwitchedLoads[1].FullOn();
+                        officeDin8Sw8i.SwitchedLoads[2].FullOff();
                         break;
-                }
-            }
-            else if (args.Button.State == eButtonState.Released)
-            {
-                switch (args.Button.Number)
-                {
-                    case 2:
-                        //officeDin1DimU4.DinLoads[4].LevelIn.StopRamp();
+                    case 6:
+                        officeDin8Sw8i.SwitchedLoads[2].FullOn();
+                        officeDin8Sw8i.SwitchedLoads[1].FullOff();
+                        break;
+                    case 7:
+                        officeDin8Sw8i.SwitchedLoads[3].FullOn();
+                        officeDin8Sw8i.SwitchedLoads[4].FullOff();
+                        break;
+                    case 8:
+                        officeDin8Sw8i.SwitchedLoads[4].FullOn();
+                        officeDin8Sw8i.SwitchedLoads[3].FullOff();
+                        break;
+                    default:
                         break;
                 }
             }
@@ -308,6 +323,14 @@ namespace office
                     case 10:
                         officeDinIo8.VersiPorts[4].DigitalOut = !officeDinIo8.VersiPorts[4].DigitalOut;
                         meetingC2niCb.Feedbacks[10].State = officeDinIo8.VersiPorts[4].DigitalOut;
+                        break;
+                    case 11:
+                        officeDin8Sw8i.SwitchedLoads[5].FullOn();
+                        officeDin8Sw8i.SwitchedLoads[6].FullOff();
+                        break;
+                    case 12:
+                        officeDin8Sw8i.SwitchedLoads[6].FullOn();
+                        officeDin8Sw8i.SwitchedLoads[5].FullOff();
                         break;
                     default:
                         break;
