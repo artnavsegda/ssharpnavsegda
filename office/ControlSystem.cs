@@ -34,9 +34,32 @@ namespace office
                 Thread.MaxNumberOfUserThreads = 20;
 
                 officeDinIo8 = new DinIo8(0x9, this);
+
+                if (officeDinIo8.Register() != eDeviceRegistrationUnRegistrationResponse.Success)
+                {
+                    CrestronConsole.PrintLine(" Unable to register for officeDinIo8 ");
+                    CrestronConsole.PrintLine("officeDinIo8 {0} failed registration. Cause: {1}", 0x25, officeDinIo8.RegistrationFailureReason);
+                    ErrorLog.Error("officeDinIo8 {0} failed registration. Cause: {1}", 0x25, officeDinIo8.RegistrationFailureReason);
+                }
+                else
+                {
+                    CrestronConsole.PrintLine(" officeDinIo8 successfully registered ");
+                }
+
                 underShieldC2nCbdP = new C2nCbdP(0x5, this);
 
                 underShieldC2nCbdP.ButtonStateChange += new ButtonEventHandler(underShieldC2nCbdP_ButtonStateChange);
+
+                if (underShieldC2nCbdP.Register() != eDeviceRegistrationUnRegistrationResponse.Success)
+                {
+                    CrestronConsole.PrintLine(" Unable to register for underShieldC2nCbdP ");
+                    CrestronConsole.PrintLine("underShieldC2nCbdP {0} failed registration. Cause: {1}", 0x25, underShieldC2nCbdP.RegistrationFailureReason);
+                    ErrorLog.Error("underShieldC2nCbdP {0} failed registration. Cause: {1}", 0x25, underShieldC2nCbdP.RegistrationFailureReason);
+                }
+                else
+                {
+                    CrestronConsole.PrintLine(" underShieldC2nCbdP successfully registered ");
+                }
 
                 //Subscribe to the controller events (System, Program, and Ethernet)
                 CrestronEnvironment.SystemEventHandler += new SystemEventHandler(ControlSystem_ControllerSystemEventHandler);
@@ -66,7 +89,7 @@ namespace office
         {
             try
             {
-
+                officeDinIo8.VersiPorts[1].SetVersiportConfiguration(eVersiportConfiguration.DigitalOutput);
             }
             catch (Exception e)
             {
@@ -76,12 +99,17 @@ namespace office
 
         void underShieldC2nCbdP_ButtonStateChange(GenericBase device, ButtonEventArgs args)
         {
+            CrestronConsole.PrintLine("Event sig: {0}, Type: {1}, State: {2}", args.Button.Number, args.Button.GetType(), args.Button.State);
+
             if (args.Button.State == eButtonState.Pressed)
             {
                 switch (args.Button.Number)
                 {
                     case 1:
-                        officeDinIo8.VersiPorts[0].DigitalOut = !officeDinIo8.VersiPorts[0].DigitalOut;
+                        officeDinIo8.VersiPorts[1].DigitalOut = true;
+                        break;
+                    case 2:
+                        officeDinIo8.VersiPorts[1].DigitalOut = false;
                         break;
                     default:
                         break;
