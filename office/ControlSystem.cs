@@ -87,7 +87,7 @@ namespace office
                     CrestronConsole.PrintLine("meetingC2niCb successfully registered ");
                 }
 
-                officeIridium = new Xpanel(0x1, this);
+                officeIridium = new Xpanel(0x3, this);
                 officeIridium.SigChange += new SigEventHandler(officeIridium_SigChange);
                 if (officeIridium.Register() != eDeviceRegistrationUnRegistrationResponse.Success)
                 {
