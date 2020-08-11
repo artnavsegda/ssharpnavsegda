@@ -165,6 +165,21 @@ namespace office
         void officeIridium_SigChange(BasicTriList device, SigEventArgs args)
         {
             CrestronConsole.PrintLine("officeIridium Event sig: {0}, Type: {1}, State: {2}", args.Sig.Number, args.Sig.Type, args.Sig.BoolValue);
+            switch (args.Sig.Number)
+            {
+                case 1:
+                    officeDinIo8.VersiPorts[1].DigitalOut = args.Sig.BoolValue;
+                    underShieldC2nCbdP.Feedbacks[1].State = officeDinIo8.VersiPorts[1].DigitalOut;
+                    entranceC2nCbdP.Feedbacks[1].State = officeDinIo8.VersiPorts[1].DigitalOut;
+                    officeIridium.BooleanInput[1].BoolValue = officeDinIo8.VersiPorts[1].DigitalOut;
+                    break;
+                case 2:
+                    officeDinIo8.VersiPorts[2].DigitalOut = args.Sig.BoolValue;
+                    entranceC2nCbdP.Feedbacks[2].State = officeDinIo8.VersiPorts[2].DigitalOut;
+                    meetingC2niCb.Feedbacks[1].State = officeDinIo8.VersiPorts[2].DigitalOut;
+                    officeIridium.BooleanInput[2].BoolValue = officeDinIo8.VersiPorts[2].DigitalOut;
+                    break;
+            }
         }
 
         void underShieldC2nCbdP_ButtonStateChange(GenericBase device, ButtonEventArgs args)
@@ -179,6 +194,7 @@ namespace office
                         officeDinIo8.VersiPorts[1].DigitalOut = !officeDinIo8.VersiPorts[1].DigitalOut;
                         underShieldC2nCbdP.Feedbacks[1].State = officeDinIo8.VersiPorts[1].DigitalOut;
                         entranceC2nCbdP.Feedbacks[1].State = officeDinIo8.VersiPorts[1].DigitalOut;
+                        officeIridium.BooleanInput[1].BoolValue = officeDinIo8.VersiPorts[1].DigitalOut;
                         break;
                     case 2:
                         //if (officeDin1DimU4.DinLoads[4].LevelOut.UShortValue > 0)
@@ -235,11 +251,13 @@ namespace office
                         officeDinIo8.VersiPorts[1].DigitalOut = !officeDinIo8.VersiPorts[1].DigitalOut;
                         underShieldC2nCbdP.Feedbacks[1].State = officeDinIo8.VersiPorts[1].DigitalOut;
                         entranceC2nCbdP.Feedbacks[1].State = officeDinIo8.VersiPorts[1].DigitalOut;
+                        officeIridium.BooleanInput[1].BoolValue = officeDinIo8.VersiPorts[1].DigitalOut;
                         break;
                     case 2:
                         officeDinIo8.VersiPorts[2].DigitalOut = !officeDinIo8.VersiPorts[2].DigitalOut;
                         entranceC2nCbdP.Feedbacks[2].State = officeDinIo8.VersiPorts[2].DigitalOut;
                         meetingC2niCb.Feedbacks[1].State = officeDinIo8.VersiPorts[2].DigitalOut;
+                        officeIridium.BooleanInput[2].BoolValue = officeDinIo8.VersiPorts[2].DigitalOut;
                         break;
                     case 6:
                         officeDinIo8.VersiPorts[1].DigitalOut = false;
