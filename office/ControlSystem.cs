@@ -169,6 +169,25 @@ namespace office
                         entranceC2nCbdP.Feedbacks[2].State = officeDinIo8.VersiPorts[2].DigitalOut;
                         meetingC2niCb.Feedbacks[1].State = officeDinIo8.VersiPorts[2].DigitalOut;
                         break;
+                    case 6:
+                        officeDinIo8.VersiPorts[1].DigitalOut = false;
+                        officeDinIo8.VersiPorts[2].DigitalOut = false;
+                        officeDinIo8.VersiPorts[3].DigitalOut = false;
+                        officeDinIo8.VersiPorts[4].DigitalOut = false;
+                        officeDinIo8.VersiPorts[5].DigitalOut = false;
+                        officeDinIo8.VersiPorts[6].DigitalOut = false;
+                        officeDinIo8.VersiPorts[7].DigitalOut = false;
+                        officeDinIo8.VersiPorts[8].DigitalOut = false;
+
+                        entranceC2nCbdP.Feedbacks[1].State = false;
+                        entranceC2nCbdP.Feedbacks[2].State = false;
+                        underShieldC2nCbdP.Feedbacks[1].State = false;
+                        underShieldC2nCbdP.Feedbacks[4].State = false;
+                        meetingC2niCb.Feedbacks[1].State = false;
+                        meetingC2niCb.Feedbacks[4].State = false;
+                        meetingC2niCb.Feedbacks[8].State = false;
+                        meetingC2niCb.Feedbacks[10].State = false;
+                        break;
                     default:
                         break;
                 }
