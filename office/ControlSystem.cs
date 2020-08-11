@@ -209,9 +209,15 @@ namespace office
                 {
                     case 2:
                         if (officeDin1DimU4.DinLoads[4].LevelOut.UShortValue == 0)
-                            officeDin1DimU4.DinLoads[4].LevelIn.CreateRamp(60000,100);
+                        {
+                            officeDin1DimU4.DinLoads[4].LevelIn.CreateRamp(60000, 100);
+                            underShieldC2nCbdP.Feedbacks[2].State = true;
+                        }
                         else
+                        {
                             officeDin1DimU4.DinLoads[4].LevelIn.CreateRamp(0, 100);
+                            underShieldC2nCbdP.Feedbacks[2].State = false;
+                        }
                         break;
                 }
             }
@@ -295,21 +301,39 @@ namespace office
                 {
                     case 2:
                         if (officeDin1DimU4.DinLoads[1].LevelOut.UShortValue == 0)
+                        {
                             officeDin1DimU4.DinLoads[1].LevelIn.CreateRamp(60000, 100);
+                            underShieldC2nCbdP.Feedbacks[2].State = true;
+                        }
                         else
+                        {
                             officeDin1DimU4.DinLoads[1].LevelIn.CreateRamp(0, 100);
+                            underShieldC2nCbdP.Feedbacks[2].State = false;
+                        }
                         break;
                     case 3:
                         if (officeDin1DimU4.DinLoads[2].LevelOut.UShortValue == 0)
+                        {
                             officeDin1DimU4.DinLoads[2].LevelIn.CreateRamp(60000, 100);
+                            underShieldC2nCbdP.Feedbacks[3].State = true;
+                        }
                         else
+                        {
                             officeDin1DimU4.DinLoads[2].LevelIn.CreateRamp(0, 100);
+                            underShieldC2nCbdP.Feedbacks[3].State = false;
+                        }
                         break;
                     case 9:
                         if (officeDin1DimU4.DinLoads[3].LevelOut.UShortValue == 0)
+                        {
                             officeDin1DimU4.DinLoads[3].LevelIn.CreateRamp(60000, 100);
+                            underShieldC2nCbdP.Feedbacks[9].State = true;
+                        }
                         else
+                        {
                             officeDin1DimU4.DinLoads[3].LevelIn.CreateRamp(0, 100);
+                            underShieldC2nCbdP.Feedbacks[9].State = false;
+                        }
                         break;
                 }
             }
