@@ -33,7 +33,7 @@ namespace office
             {
                 Thread.MaxNumberOfUserThreads = 20;
 
-                officeDinIo8 = new DinIo8(0x8, this);
+                officeDinIo8 = new DinIo8(0x9, this);
                 underShieldC2nCbdP = new C2nCbdP(0x5, this);
 
                 underShieldC2nCbdP.ButtonStateChange += new ButtonEventHandler(underShieldC2nCbdP_ButtonStateChange);
