@@ -1,0 +1,38 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ethernet", "Ethernet\Ethernet.csproj", "{5A25019E-36FA-4260-81DB-7906D090D27F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Serial", "Serial\Serial.csproj", "{23F14F95-1D9C-4A7D-83B7-92FBBB8739AE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IR", "IR\IR.csproj", "{E88E979C-867D-456A-96DF-AFBEDFF47115}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CEC", "CEC\CEC.csproj", "{4FC720B1-12D0-4D47-A052-FEE836DE40E0}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5A25019E-36FA-4260-81DB-7906D090D27F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5A25019E-36FA-4260-81DB-7906D090D27F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5A25019E-36FA-4260-81DB-7906D090D27F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5A25019E-36FA-4260-81DB-7906D090D27F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{23F14F95-1D9C-4A7D-83B7-92FBBB8739AE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{23F14F95-1D9C-4A7D-83B7-92FBBB8739AE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{23F14F95-1D9C-4A7D-83B7-92FBBB8739AE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{23F14F95-1D9C-4A7D-83B7-92FBBB8739AE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E88E979C-867D-456A-96DF-AFBEDFF47115}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E88E979C-867D-456A-96DF-AFBEDFF47115}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E88E979C-867D-456A-96DF-AFBEDFF47115}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E88E979C-867D-456A-96DF-AFBEDFF47115}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4FC720B1-12D0-4D47-A052-FEE836DE40E0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4FC720B1-12D0-4D47-A052-FEE836DE40E0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4FC720B1-12D0-4D47-A052-FEE836DE40E0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4FC720B1-12D0-4D47-A052-FEE836DE40E0}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

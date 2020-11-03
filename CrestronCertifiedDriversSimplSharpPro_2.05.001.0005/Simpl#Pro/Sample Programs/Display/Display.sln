@@ -1,0 +1,32 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ethernet", "Ethernet\Ethernet.csproj", "{2666E0C4-48B6-428C-8745-A84747FAF7C6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IR", "IR\IR.csproj", "{D0F71A08-2EFC-4E37-9837-0B573FEE7ADB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Serial", "Serial\Serial.csproj", "{4C806454-8BC0-4DFF-BF48-BFAE730CCF49}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{2666E0C4-48B6-428C-8745-A84747FAF7C6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2666E0C4-48B6-428C-8745-A84747FAF7C6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2666E0C4-48B6-428C-8745-A84747FAF7C6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2666E0C4-48B6-428C-8745-A84747FAF7C6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D0F71A08-2EFC-4E37-9837-0B573FEE7ADB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D0F71A08-2EFC-4E37-9837-0B573FEE7ADB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D0F71A08-2EFC-4E37-9837-0B573FEE7ADB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D0F71A08-2EFC-4E37-9837-0B573FEE7ADB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4C806454-8BC0-4DFF-BF48-BFAE730CCF49}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4C806454-8BC0-4DFF-BF48-BFAE730CCF49}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4C806454-8BC0-4DFF-BF48-BFAE730CCF49}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4C806454-8BC0-4DFF-BF48-BFAE730CCF49}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
