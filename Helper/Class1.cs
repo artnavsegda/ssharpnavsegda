@@ -14,5 +14,11 @@ namespace Helper
         {
             return (int)(((float)rampValue / (float)rampBound) * (float)transitionTime);
         }
+        public SimplSharpString analogToEis5(int analogIn)
+        {
+            float myFloatVariable = (float)analogIn / 100;
+            SimplSharpString strFormattedDate = myFloatVariable.ToString("n2");
+            return strFormattedDate;
+        }
     }
 }
